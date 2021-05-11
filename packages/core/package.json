@@ -1,0 +1,15 @@
+{
+  "name": "@iris/core",
+  "version": "0.0.0",
+  "description": "> TODO: description",
+  "author": "Jon Mulligan <jonmulligan@me.com>",
+  "homepage": "",
+  "license": "ISC",
+  "main": "lib/core.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "lib"
+  ]
+}

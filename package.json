@@ -3,5 +3,9 @@
   "private": true,
   "devDependencies": {
     "lerna": "3.22.1"
+  },
+  "dependencies": {
+    "save-dev": "^0.0.1-security",
+    "typescript": "^4.2.4"
   }
 }
