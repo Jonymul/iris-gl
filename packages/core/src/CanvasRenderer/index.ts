@@ -25,19 +25,14 @@ const VERTICES = new Float32Array([-1, -1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1]);
 
 export type InterpolationMode = "Linear" | "Nearest";
 
-type CanvasRendererState =
-  | "Awaiting Image"
-  | "Loading Image"
-  | "Ready"
-  | "Rendering";
+type CanvasRendererState = "Awaiting Image" | "Ready";
 
 export class CanvasRenderer {
   private state: CanvasRendererState = "Awaiting Image";
-  private dimensions = { width: 0, height: 0 };
+  private renderDimensions = { width: 0, height: 0 };
   private canvas: HTMLCanvasElement;
   private context: WebGLRenderingContext;
   private shaderCompiler: ShaderCompiler;
-  private interpolationMode: InterpolationMode = "Linear";
   private currentProgram: WebGLProgram;
 
   constructor() {
@@ -82,11 +77,15 @@ export class CanvasRenderer {
     gl.clear(gl.COLOR_BUFFER_BIT);
   }
 
-  private setTexture(image: ImageData | HTMLImageElement) {
+  private setTexture(
+    image: ImageData | HTMLImageElement,
+    options: { interpolationMode?: InterpolationMode } = {}
+  ) {
     const gl = this.context;
     let glInterpolationMode: number;
+    const { interpolationMode = "Linear" } = options;
 
-    switch (this.interpolationMode) {
+    switch (interpolationMode) {
       case "Nearest":
         glInterpolationMode = gl.NEAREST;
         break;
@@ -97,7 +96,6 @@ export class CanvasRenderer {
         break;
     }
 
-    this.state = "Loading Image";
     const texture = gl.createTexture();
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -109,7 +107,7 @@ export class CanvasRenderer {
     this.state = "Ready";
   }
 
-  private render() {
+  private draw() {
     const gl = this.context;
 
     if (this.state !== "Ready") {
@@ -118,8 +116,8 @@ export class CanvasRenderer {
       );
     }
 
-    this.canvas.width = this.dimensions.width;
-    this.canvas.height = this.dimensions.height;
+    this.canvas.width = this.renderDimensions.width;
+    this.canvas.height = this.renderDimensions.height;
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
     // Bind VERTICES as the active array buffer.
@@ -139,28 +137,55 @@ export class CanvasRenderer {
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   }
 
-  setInterpolationMode(mode: InterpolationMode) {
-    // Come to think of it, the final render should be cropping only. Not resizing.
-    // So the interpolation mode won't make a difference.
-    this.interpolationMode = mode;
+  private getImageDataFromCanvas() {
+    const gl = this.context;
+    const pixelBuffer = new Uint8ClampedArray(
+      gl.drawingBufferWidth * gl.drawingBufferHeight * 4
+    );
+    this.context.readPixels(
+      0,
+      0,
+      gl.drawingBufferWidth,
+      gl.drawingBufferHeight,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      pixelBuffer
+    );
+
+    return new ImageData(
+      pixelBuffer,
+      gl.drawingBufferWidth,
+      gl.drawingBufferHeight
+    );
+  }
+
+  setDimensions(width: number, height: number) {
+    this.renderDimensions = {
+      width,
+      height,
+    };
   }
 
   setImage(inputImage: ImageData | HTMLImageElement) {
     this.setTexture(inputImage);
 
     if (inputImage instanceof ImageData) {
-      this.dimensions = {
+      this.renderDimensions = {
         width: inputImage.width,
         height: inputImage.height,
       };
     }
 
     if (inputImage instanceof HTMLImageElement) {
-      this.dimensions = {
+      this.renderDimensions = {
         width: inputImage.naturalWidth,
         height: inputImage.naturalHeight,
       };
     }
-    this.render(); // render
+  }
+
+  render() {
+    this.draw();
+    return this.getImageDataFromCanvas();
   }
 }

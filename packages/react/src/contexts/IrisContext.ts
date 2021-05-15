@@ -14,6 +14,7 @@ export const useRootIrisContextValue = (): IIrisContext => {
   useEffect(() => {
     if (imageElem !== undefined) {
       irisInstance.setImage(imageElem);
+      console.log("rendered", irisInstance.render());
     }
   }, [imageElem]);
 
