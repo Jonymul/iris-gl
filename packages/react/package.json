@@ -5,11 +5,23 @@
   "author": "Jon Mulligan <jonmulligan@me.com>",
   "homepage": "",
   "license": "ISC",
-  "main": "lib/react.js",
+  "main": "lib/index.js",
+  "devDependencies": {
+    "@types/react-dom": "17.0.4"
+  },
+  "dependencies": {
+    "@iris/core": "0.0.0"
+  },
+  "peerDependencies": {
+    "react": "^17.0.0"
+  },
   "directories": {
     "lib": "lib"
   },
   "files": [
     "lib"
-  ]
+  ],
+  "scripts": {
+    "start": "tsc"
+  }
 }

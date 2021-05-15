@@ -5,11 +5,14 @@
   "author": "Jon Mulligan <jonmulligan@me.com>",
   "homepage": "",
   "license": "ISC",
-  "main": "lib/core.js",
+  "main": "lib/index.js",
   "directories": {
     "lib": "lib"
   },
   "files": [
     "lib"
-  ]
+  ],
+  "scripts": {
+    "start": "tsc"
+  }
 }

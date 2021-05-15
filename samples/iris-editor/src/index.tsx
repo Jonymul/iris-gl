@@ -1,11 +1,5 @@
-import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
-import App from "./App";
+import { IrisProvider } from "@iris/react";
 
-ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById("root")
-);
+ReactDOM.render(<IrisProvider></IrisProvider>, document.getElementById("root"));
