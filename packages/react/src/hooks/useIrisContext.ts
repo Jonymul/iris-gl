@@ -1,9 +1,9 @@
 import { useContext } from "react";
-import * as IrisContext from "../contexts/IrisContext";
+import { IrisContext } from "../contexts/IrisContext";
 
 export const useIrisContext = () => {
   const context = useContext(IrisContext);
-  if (context === null) {
+  if (!context) {
     throw new Error("Iris context accessed outside of a valid IrisProvider");
   }
 

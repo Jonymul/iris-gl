@@ -1,5 +1,12 @@
 import ReactDOM from "react-dom";
 import "./index.css";
-import { IrisProvider } from "@iris/react";
+import { IrisPreview, IrisProvider } from "@iris/react";
 
-ReactDOM.render(<IrisProvider></IrisProvider>, document.getElementById("root"));
+ReactDOM.render(
+  <IrisProvider>
+    <IrisPreview style={{ width: 500, height: 600 }} />
+    <IrisPreview style={{ width: "100%", height: 400 }} />
+    <IrisPreview style={{ width: "100%", height: 300 }} />
+  </IrisProvider>,
+  document.getElementById("root")
+);

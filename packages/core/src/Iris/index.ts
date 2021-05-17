@@ -1,11 +1,16 @@
 import { CanvasRenderer } from "../CanvasRenderer";
 import { CropParameters, defaultCropParameters } from "../types/CropParameters";
+import { Dimensions } from "../types/Dimensions";
 
 export class Iris {
-  private canvasRenderer = new CanvasRenderer();
-  private inputDimensions = { width: 0, height: 0 };
+  private canvasRenderer: CanvasRenderer;
+  private inputDimensions: Dimensions = { width: 0, height: 0 };
   private cropParams: CropParameters = defaultCropParameters;
-  private maxOutputDimensions: { width: number; height: number };
+  private maxOutputDimensions: Dimensions;
+
+  constructor(targetCanvas: HTMLCanvasElement) {
+    this.canvasRenderer = new CanvasRenderer(targetCanvas);
+  }
 
   private getOutputDimensions() {
     if (this.maxOutputDimensions === undefined) {
@@ -42,7 +47,7 @@ export class Iris {
     this.canvasRenderer.setImage(inputImage);
   }
 
-  setMaxOutputDimensions(dimensions: { width: number; height: number }) {
+  setMaxOutputDimensions(dimensions: Dimensions) {
     this.maxOutputDimensions = dimensions;
   }
 

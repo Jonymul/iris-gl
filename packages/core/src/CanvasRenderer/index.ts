@@ -1,3 +1,4 @@
+import { Dimensions } from "../types/Dimensions";
 import { ShaderCompiler } from "./ShaderCompiler";
 
 const BASE_VERTEX_SHADER = `
@@ -34,11 +35,11 @@ export class CanvasRenderer {
   private shaderCompiler: ShaderCompiler;
   private currentProgram: WebGLProgram;
 
-  constructor() {
-    this.canvas = document.createElement("canvas");
+  constructor(targetCanvas: HTMLCanvasElement) {
+    this.canvas = targetCanvas;
     this.canvas.width = 0;
     this.canvas.height = 0;
-    document.body.appendChild(this.canvas);
+
     const gl = (this.context = this.canvas.getContext("webgl"));
 
     if (gl === null) {
@@ -106,7 +107,7 @@ export class CanvasRenderer {
     this.state = "Ready";
   }
 
-  private draw(params: { width: number; height: number }) {
+  private draw(params: Dimensions) {
     const gl = this.context;
 
     if (this.state !== "Ready") {
@@ -162,7 +163,7 @@ export class CanvasRenderer {
     this.setTexture(inputImage);
   }
 
-  render(params: { width: number; height: number }) {
+  render(params: Dimensions) {
     this.draw(params);
     return this.getImageDataFromCanvas();
   }
