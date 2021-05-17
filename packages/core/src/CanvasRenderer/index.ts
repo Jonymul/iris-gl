@@ -29,7 +29,6 @@ type CanvasRendererState = "Awaiting Image" | "Ready";
 
 export class CanvasRenderer {
   private state: CanvasRendererState = "Awaiting Image";
-  private renderDimensions = { width: 0, height: 0 };
   private canvas: HTMLCanvasElement;
   private context: WebGLRenderingContext;
   private shaderCompiler: ShaderCompiler;
@@ -107,7 +106,7 @@ export class CanvasRenderer {
     this.state = "Ready";
   }
 
-  private draw() {
+  private draw(params: { width: number; height: number }) {
     const gl = this.context;
 
     if (this.state !== "Ready") {
@@ -116,8 +115,8 @@ export class CanvasRenderer {
       );
     }
 
-    this.canvas.width = this.renderDimensions.width;
-    this.canvas.height = this.renderDimensions.height;
+    this.canvas.width = params.width;
+    this.canvas.height = params.height;
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
     // Bind VERTICES as the active array buffer.
@@ -159,33 +158,12 @@ export class CanvasRenderer {
     );
   }
 
-  setDimensions(width: number, height: number) {
-    this.renderDimensions = {
-      width,
-      height,
-    };
-  }
-
   setImage(inputImage: ImageData | HTMLImageElement) {
     this.setTexture(inputImage);
-
-    if (inputImage instanceof ImageData) {
-      this.renderDimensions = {
-        width: inputImage.width,
-        height: inputImage.height,
-      };
-    }
-
-    if (inputImage instanceof HTMLImageElement) {
-      this.renderDimensions = {
-        width: inputImage.naturalWidth,
-        height: inputImage.naturalHeight,
-      };
-    }
   }
 
-  render() {
-    this.draw();
+  render(params: { width: number; height: number }) {
+    this.draw(params);
     return this.getImageDataFromCanvas();
   }
 }
