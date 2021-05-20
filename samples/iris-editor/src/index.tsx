@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import { IrisPreview, IrisProvider } from "@iris/react";
 import { Fragment } from "react";
 import { GlobalStyles } from "./GlobalStyles";
+import { ParameterCarousel } from "./components/molecules/ParameterCarousel";
 
 ReactDOM.render(
   <Fragment>
@@ -14,6 +15,7 @@ ReactDOM.render(
           height: 400px;
         `}
       />
+      <ParameterCarousel />
     </IrisProvider>
   </Fragment>,
   document.getElementById("root")
