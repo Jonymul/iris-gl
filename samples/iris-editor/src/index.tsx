@@ -1,9 +1,9 @@
-import { css, Global } from "@emotion/react";
+import { css } from "@emotion/react";
 import ReactDOM from "react-dom";
 import { IrisPreview, IrisProvider } from "@iris/react";
 import { Fragment } from "react";
-import { GlobalStyles } from "./GlobalStyles";
-import { ParameterCarousel } from "./components/molecules/ParameterCarousel";
+import { GlobalStyles } from "./lib/GlobalStyles";
+import { EditorControls } from "./components/organisms/EditorControls";
 
 ReactDOM.render(
   <Fragment>
@@ -15,7 +15,7 @@ ReactDOM.render(
           height: 400px;
         `}
       />
-      <ParameterCarousel />
+      <EditorControls />
     </IrisProvider>
   </Fragment>,
   document.getElementById("root")

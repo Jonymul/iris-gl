@@ -1,7 +1,7 @@
 import { css, Global } from "@emotion/react";
-import { FunctionComponent } from "react";
+import { FC } from "react";
 
-export const GlobalStyles: FunctionComponent = () => (
+export const GlobalStyles: FC = () => (
   <Global
     styles={css`
       body {

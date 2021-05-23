@@ -1,7 +1,7 @@
 import { css } from "@emotion/react";
-import { FunctionComponent } from "react";
+import { FC } from "react";
 
-export const ParameterDivider: FunctionComponent = (props) => (
+export const ParameterDivider: FC = (props) => (
   <hr
     css={css`
       width: 1px;

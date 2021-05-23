@@ -1,59 +1,96 @@
 import { css } from "@emotion/react";
-import { cloneElement, FunctionComponent, ReactElement, useMemo } from "react";
+import {
+  cloneElement,
+  FC,
+  forwardRef,
+  HTMLAttributes,
+  ReactElement,
+  useMemo,
+} from "react";
 
-export type CarouselProps = {
+export type CarouselProps = HTMLAttributes<HTMLUListElement> & {
   children: ReactElement[] | ReactElement;
-  gap?: number;
-  paddingX?: number;
+  snap?: "start" | "center";
+  gap?: string;
+  paddingX?: string;
+  paddingY?: string;
+  snapSkipConstructors?: FC[];
+  _highlightIndicator?: ReactElement;
 };
 
-export const Carousel: FunctionComponent<CarouselProps> = (props) => {
-  const { children, paddingX = 24, gap = 24 } = props;
+export const Carousel = forwardRef<HTMLUListElement, CarouselProps>(
+  (props, ref) => {
+    const {
+      children,
+      snap = "start",
+      paddingX = "24px",
+      paddingY = "24px",
+      gap = "24px",
+      snapSkipConstructors,
+      _highlightIndicator,
+      ...baseProps
+    } = props;
 
-  const itemArray = useMemo(
-    () =>
-      (children instanceof Array
-        ? [...children]
-        : [children]) as ReactElement[],
-    [children]
-  );
+    const itemArray = useMemo(
+      () =>
+        (children instanceof Array
+          ? [...children]
+          : [children]) as ReactElement[],
+      [children]
+    );
 
-  return (
-    <ul
-      css={css`
-        list-style: none;
-        padding: 0;
-        display: flex;
-        justify-content: start;
-        overflow-x: scroll;
-        overflow-y: hidden;
-        scroll-snap-type: x mandatory;
-        scroll-snap-align: start;
-        scroll-padding: 24px;
+    return (
+      <ul
+        css={css`
+          list-style: none;
+          padding: 0;
+          display: flex;
+          justify-content: start;
+          margin: 0;
+          overflow-x: scroll;
+          overflow-y: hidden;
+          scroll-snap-type: x mandatory;
+          scroll-padding: ${snap !== "center" ? paddingX : null};
 
-        &:before,
-        &:after {
-          content: "";
-          display: block;
-          flex: 0 0 ${paddingX}px;
-        }
-      `}
-    >
-      {itemArray.map((item, index) => (
-        <li
-          key={index}
-          css={css`
-            flex: 0 0 auto;
-            margin-right: ${gap}px;
+          &:before,
+          &:after {
+            content: "";
+            display: block;
+            flex: 0 0 ${paddingX};
+          }
+        `}
+        ref={ref}
+        {...baseProps}
+      >
+        {itemArray.map((item, index) => {
+          const isIgnoredConstructor = snapSkipConstructors?.some(
+            (c) => c === item.type
+          );
 
-            &:last-of-type {
-              margin-right: 0;
-            }
-          `}
-        >
-          {cloneElement(item)}
-        </li>
-      ))}
-    </ul>
-  );
-};
+          return (
+            <li
+              key={index}
+              role={isIgnoredConstructor ? "presentation" : undefined}
+              css={css`
+                flex: 0 0 auto;
+                margin-right: ${gap};
+                margin-top: ${paddingY};
+                margin-bottom: ${paddingY};
+                scroll-snap-align: ${!isIgnoredConstructor ? snap : null};
+
+                &:last-child {
+                  margin-right: 0;
+                }
+              `}
+            >
+              {cloneElement(item)}
+            </li>
+          );
+        })}
+        {_highlightIndicator !== undefined ? (
+          <li>{_highlightIndicator}</li>
+        ) : null}
+      </ul>
+    );
+  }
+);

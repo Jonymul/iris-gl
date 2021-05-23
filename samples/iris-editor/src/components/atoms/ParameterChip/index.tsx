@@ -1,14 +1,14 @@
 import { css } from "@emotion/react";
-import { FunctionComponent } from "react";
+import { FC, HTMLAttributes } from "react";
 import { Icon } from "../Icon";
 
-export type ParameterChipProps = {
+export type ParameterChipProps = HTMLAttributes<HTMLButtonElement> & {
   label: string;
   icon: string;
 };
 
-export const ParameterChip: FunctionComponent<ParameterChipProps> = (props) => {
-  const { label, icon } = props;
+export const ParameterChip: FC<ParameterChipProps> = (props) => {
+  const { label, icon, ...baseProps } = props;
 
   return (
     <button
@@ -20,6 +20,7 @@ export const ParameterChip: FunctionComponent<ParameterChipProps> = (props) => {
         align-items: center;
         width: 56px;
       `}
+      {...baseProps}
     >
       <Icon
         icon={icon}
@@ -33,10 +34,11 @@ export const ParameterChip: FunctionComponent<ParameterChipProps> = (props) => {
       <div
         css={css`
           margin-top: 10px;
-          font-size: 14px;
-          font-weight: 600;
+          font-size: 12px;
+          font-weight: regular;
           text-align: center;
           text-overflow: visible;
+          text-transform: uppercase;
         `}
       >
         {label}
