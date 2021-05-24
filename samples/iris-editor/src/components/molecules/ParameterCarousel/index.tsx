@@ -1,80 +1,60 @@
-import { FC } from "react";
+import { FC, useMemo } from "react";
 import { Carousel } from "../../atoms/Carousel";
 import { ParameterChip } from "../../atoms/ParameterChip";
 import { ParameterDivider } from "../../atoms/ParameterDivider";
 
+const parameters: (
+  | "DIVIDER"
+  | { icon: string; label: string; index: number }
+)[] = [
+  { icon: "crop", label: "Crop", index: 0 },
+  "DIVIDER",
+  { icon: "light_mode", label: "Brightness", index: 1 },
+  { icon: "exposure", label: "Exposure", index: 2 },
+  { icon: "tonality", label: "Contrast", index: 3 },
+  { icon: "hdr_strong", label: "Highlights", index: 4 },
+  { icon: "hdr_weak", label: "Shadows", index: 5 },
+  "DIVIDER",
+  { icon: "thermostat", label: "Warmth", index: 6 },
+  { icon: "colorize", label: "Tint", index: 7 },
+  { icon: "invert_colors", label: "Saturation", index: 8 },
+  "DIVIDER",
+  { icon: "details", label: "Sharpness", index: 9 },
+  { icon: "grain", label: "Grain", index: 10 },
+  { icon: "vignette", label: "Vignette", index: 11 },
+];
+
 export type ParameterCarouselProps = {
-  onClickParameter(parameterName: string): void;
+  selectedParameter?: number;
+  onClickParameter(index: number): void;
 };
 
 export const ParameterCarousel: FC<ParameterCarouselProps> = (props) => {
-  const { onClickParameter } = props;
+  const { selectedParameter, onClickParameter } = props;
+  const hasSelectedItem = useMemo(
+    () => selectedParameter !== undefined,
+    [selectedParameter]
+  );
 
   return (
-    <Carousel snapSkipConstructors={[ParameterDivider]}>
-      <ParameterChip
-        icon="crop"
-        label="Crop"
-        onClick={() => onClickParameter("Crop")}
-      />
-      <ParameterDivider />
-      <ParameterChip
-        icon="light_mode"
-        label="Brightness"
-        onClick={() => onClickParameter("Brightness")}
-      />
-      <ParameterChip
-        icon="exposure"
-        label="Exposure"
-        onClick={() => onClickParameter("Exposure")}
-      />
-      <ParameterChip
-        icon="tonality"
-        label="Contrast"
-        onClick={() => onClickParameter("Contrast")}
-      />
-      <ParameterChip
-        icon="hdr_strong"
-        label="Highlights"
-        onClick={() => onClickParameter("Highlights")}
-      />
-      <ParameterChip
-        icon="hdr_weak"
-        label="Shadows"
-        onClick={() => onClickParameter("Shadows")}
-      />
-      <ParameterDivider />
-      <ParameterChip
-        icon="thermostat"
-        label="Warmth"
-        onClick={() => onClickParameter("Warmth")}
-      />
-      <ParameterChip
-        icon="colorize"
-        label="Tint"
-        onClick={() => onClickParameter("Tint")}
-      />
-      <ParameterChip
-        icon="invert_colors"
-        label="Saturation"
-        onClick={() => onClickParameter("Saturation")}
-      />
-      <ParameterDivider />
-      <ParameterChip
-        icon="details"
-        label="Sharpness"
-        onClick={() => onClickParameter("Sharpness")}
-      />
-      <ParameterChip
-        icon="grain"
-        label="Grain"
-        onClick={() => onClickParameter("Grain")}
-      />
-      <ParameterChip
-        icon="vignette"
-        label="Vignette"
-        onClick={() => onClickParameter("Vignette")}
-      />
+    <Carousel
+      paddingX={hasSelectedItem ? "50%" : "24px"}
+      snap={hasSelectedItem ? "center" : "start"}
+      snapSkipConstructors={[ParameterDivider]}
+      focusedItem={selectedParameter}
+      onFocusedItemChange={onClickParameter}
+    >
+      {parameters.map((param) =>
+        param === "DIVIDER" ? (
+          <ParameterDivider />
+        ) : (
+          <ParameterChip
+            icon={param.icon}
+            label={param.label}
+            onClick={() => onClickParameter(param.index)}
+          />
+        )
+      )}
     </Carousel>
   );
 };

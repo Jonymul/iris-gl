@@ -1,10 +1,12 @@
 import { css } from "@emotion/react";
-import { FC, useCallback } from "react";
+import { useState } from "react";
+import { FC } from "react";
 import { ModeSelector } from "../../molecules/ModeSelector";
 import { ParameterCarousel } from "../../molecules/ParameterCarousel";
 
 export const EditorControls: FC = (props) => {
-  const handleSelectParameter = useCallback((parameterName: string) => {}, []);
+  const [selectedParameter, setSelectedParameter] =
+    useState<number | undefined>(0);
 
   return (
     <section
@@ -13,7 +15,10 @@ export const EditorControls: FC = (props) => {
         background-color: #232323;
       `}
     >
-      <ParameterCarousel onClickParameter={handleSelectParameter} />
+      <ParameterCarousel
+        selectedParameter={selectedParameter}
+        onClickParameter={setSelectedParameter}
+      />
       <ModeSelector />
     </section>
   );
