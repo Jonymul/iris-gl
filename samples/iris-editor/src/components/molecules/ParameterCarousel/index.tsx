@@ -49,6 +49,13 @@ export const ParameterCarousel: FC<ParameterCarouselProps> = (props) => {
           <ParameterDivider />
         ) : (
           <ParameterChip
+            variant={
+              selectedParameter === undefined
+                ? "default"
+                : selectedParameter === param.index
+                ? "active"
+                : "inactive"
+            }
             icon={param.icon}
             label={param.label}
             onClick={() => onClickParameter(param.index)}

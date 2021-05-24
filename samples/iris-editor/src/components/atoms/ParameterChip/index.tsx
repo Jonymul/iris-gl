@@ -5,10 +5,31 @@ import { Icon } from "../Icon";
 export type ParameterChipProps = HTMLAttributes<HTMLButtonElement> & {
   label: string;
   icon: string;
+  variant?: "default" | "active" | "inactive";
+};
+
+const parameterChipColors = {
+  default: {
+    background: "#313131",
+    icon: "white",
+    label: "white",
+  },
+  active: {
+    background: "#61C781",
+    icon: "#111111",
+    label: "white",
+  },
+  inactive: {
+    background: "transparent",
+    icon: "white",
+    label: "#A7A7A7",
+  },
 };
 
 export const ParameterChip: FC<ParameterChipProps> = (props) => {
-  const { label, icon, ...baseProps } = props;
+  const { label, icon, variant = "default", ...baseProps } = props;
+
+  const selectedColors = parameterChipColors[variant];
 
   return (
     <button
@@ -26,13 +47,15 @@ export const ParameterChip: FC<ParameterChipProps> = (props) => {
         icon={icon}
         size={24}
         css={css`
-          background: #313131;
+          background: ${selectedColors.background};
+          color: ${selectedColors.icon};
           border-radius: 50%;
           padding: 16px;
         `}
       />
       <div
         css={css`
+          color: ${selectedColors.label};
           margin-top: 10px;
           font-size: 12px;
           font-weight: regular;
