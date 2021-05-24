@@ -44,11 +44,12 @@ export const ParameterCarousel: FC<ParameterCarouselProps> = (props) => {
       focusedItem={selectedParameter}
       onFocusedItemChange={onClickParameter}
     >
-      {parameters.map((param) =>
+      {parameters.map((param, index) =>
         param === "DIVIDER" ? (
-          <ParameterDivider />
+          <ParameterDivider key={index} />
         ) : (
           <ParameterChip
+            key={index}
             variant={
               selectedParameter === undefined
                 ? "default"
