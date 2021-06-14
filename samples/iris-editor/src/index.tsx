@@ -9,13 +9,29 @@ ReactDOM.render(
   <Fragment>
     <GlobalStyles />
     <IrisProvider>
-      <IrisPreview
+      <div
         css={css`
-          width: 100%;
-          height: 400px;
+          height: 100vh;
+          display: flex;
+          flex-direction: column;
         `}
-      />
-      <EditorControls />
+      >
+        <IrisPreview
+          css={css`
+            width: 100%;
+            flex: 1 1 auto;
+            display: flex;
+            line-height: 0;
+            align-items: center;
+            justify-content: center;
+          `}
+        />
+        <EditorControls
+          css={css`
+            flex: 0 0 auto;
+          `}
+        />
+      </div>
     </IrisProvider>
   </Fragment>,
   document.getElementById("root")
