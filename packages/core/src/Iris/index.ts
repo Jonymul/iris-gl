@@ -1,10 +1,16 @@
 import { CanvasRenderer } from "../CanvasRenderer";
+import {
+  AdjustmentParameter,
+  AdjustmentParameters,
+  defaultAdjustmentParameters,
+} from "../types/AdjustmentParameters";
 import { CropParameters, defaultCropParameters } from "../types/CropParameters";
 import { Dimensions } from "../types/Dimensions";
 
 export class Iris {
   private canvasRenderer: CanvasRenderer;
   private inputDimensions: Dimensions = { width: 0, height: 0 };
+  private adjustmentParams: AdjustmentParameters = defaultAdjustmentParameters;
   private cropParams: CropParameters = defaultCropParameters;
   private maxOutputDimensions: Dimensions;
 
@@ -49,6 +55,31 @@ export class Iris {
 
   setMaxOutputDimensions(dimensions: Dimensions) {
     this.maxOutputDimensions = dimensions;
+  }
+
+  setAdjustments(adjustments: AdjustmentParameters) {
+    this.adjustmentParams = adjustments;
+  }
+
+  getAdjustments(): AdjustmentParameters {
+    return { ...this.adjustmentParams };
+  }
+
+  resetAdjustments() {
+    this.setAdjustments(defaultAdjustmentParameters);
+  }
+
+  setAdjustmentValue<T extends AdjustmentParameter>(
+    parameter: T,
+    value: AdjustmentParameters[T]
+  ) {
+    this.adjustmentParams[parameter] = value;
+  }
+
+  getAdjustmentValue<T extends AdjustmentParameter>(
+    parameter: T
+  ): AdjustmentParameters[T] {
+    return this.adjustmentParams[parameter];
   }
 
   render() {
