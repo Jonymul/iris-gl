@@ -1,3 +1,4 @@
+import { AdjustmentParameters } from "../types/AdjustmentParameters";
 import { Dimensions } from "../types/Dimensions";
 import { ShaderCompiler } from "./ShaderCompiler";
 
@@ -17,8 +18,14 @@ const BASE_FRAGMENT_SHADER = `
   varying vec2 texCoords;
   uniform sampler2D textureSampler;
 
+  uniform float brightness;
+
   void main() {
-    gl_FragColor = texture2D(textureSampler, texCoords);
+    vec4 color = texture2D(textureSampler, texCoords);
+
+    color.rgb += brightness;
+
+    gl_FragColor = color;
   }
 `;
 
@@ -107,7 +114,7 @@ export class CanvasRenderer {
     this.state = "Ready";
   }
 
-  private draw(params: Dimensions) {
+  private draw(params: Dimensions & { adjustments: AdjustmentParameters }) {
     const gl = this.context;
 
     if (this.state !== "Ready") {
@@ -132,6 +139,10 @@ export class CanvasRenderer {
     );
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(positionLocation);
+
+    // Set our adjustments
+    const b = gl.getUniformLocation(this.currentProgram, "brightness");
+    gl.uniform1fv(b, [params.adjustments.brightness]);
 
     // Draw our 6 VERTICES as 2 triangles
     gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -167,7 +178,7 @@ export class CanvasRenderer {
     this.setTexture(inputImage);
   }
 
-  render(params: Dimensions) {
+  render(params: Dimensions & {adjustments: AdjustmentParameters}) {
     this.draw(params);
     return this.getImageDataFromCanvas();
   }

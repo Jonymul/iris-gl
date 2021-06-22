@@ -87,6 +87,6 @@ export class Iris {
   }
 
   render() {
-    return this.canvasRenderer.render({ ...this.getOutputDimensions() });
+    return this.canvasRenderer.render({ ...this.getOutputDimensions(), adjustments: this.adjustmentParams });
   }
 }
