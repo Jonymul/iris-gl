@@ -11,7 +11,10 @@ import {
   useState,
 } from "react";
 
-export type ParameterControlProps = HTMLAttributes<HTMLInputElement> & {
+export type ParameterControlProps = Omit<
+  HTMLAttributes<HTMLInputElement>,
+  "onChange"
+> & {
   min: number;
   max: number;
   value: number;

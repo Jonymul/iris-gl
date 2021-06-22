@@ -1,5 +1,9 @@
-import { createContext, useCallback, useEffect, useRef } from "react";
-import { Iris } from "@iris/core";
+import { createContext, useCallback, useEffect, useRef, useState } from "react";
+import {
+  AdjustmentParameters,
+  defaultAdjustmentParameters,
+  Iris,
+} from "@iris/core";
 import { IIrisContext } from "../types/IIrisContext";
 import { useTempGetImageData } from "../hooks/useTempGetImageData";
 
@@ -7,8 +11,11 @@ export const IrisContext = createContext<IIrisContext | undefined>(undefined);
 export const { Provider, Consumer } = IrisContext;
 
 export const useRootIrisContextValue = (): IIrisContext => {
-  // const irisInstance = useMemo(() => new Iris(), []);
   const previewIrisInstances = useRef<Record<symbol, Iris>>();
+  const hasRenderScheduled = useRef(false);
+  const [adjustments, _setAdjustments] = useState<AdjustmentParameters>(
+    defaultAdjustmentParameters
+  );
 
   const imageElem = useTempGetImageData(
     "https://images.unsplash.com/photo-1531891570158-e71b35a485bc?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fH"
@@ -34,6 +41,7 @@ export const useRootIrisContextValue = (): IIrisContext => {
       const { maxDimensions } = params;
       const reference = Symbol();
       const instance = new Iris(params.canvas);
+      instance.setAdjustments(adjustments);
 
       if (maxDimensions !== undefined) {
         instance.setMaxOutputDimensions(maxDimensions);
@@ -46,7 +54,7 @@ export const useRootIrisContextValue = (): IIrisContext => {
 
       return [instance, reference];
     },
-    [previewIrisInstances]
+    [previewIrisInstances, adjustments]
   );
 
   const destroyPreviewInstance = useCallback(
@@ -61,11 +69,49 @@ export const useRootIrisContextValue = (): IIrisContext => {
     [previewIrisInstances]
   );
 
+  const render = useCallback(() => {
+    Object.getOwnPropertySymbols(previewIrisInstances.current).forEach(
+      (reference) => {
+        const instance: Iris = previewIrisInstances.current[reference];
+        if (instance.getState() !== "Ready") return;
+        instance.render();
+      }
+    );
+  }, [previewIrisInstances]);
+
+  const scheduleRender = useCallback(() => {
+    if (!hasRenderScheduled.current) {
+      requestAnimationFrame(() => {
+        render();
+        hasRenderScheduled.current = false;
+      });
+    }
+  }, [hasRenderScheduled]);
+
+  const setInstanceAdjustments = useCallback(
+    (adjustments: AdjustmentParameters) => {
+      Object.getOwnPropertySymbols(previewIrisInstances.current).forEach(
+        (reference) => {
+          const instance: Iris = previewIrisInstances.current[reference];
+          instance.setAdjustments(adjustments);
+        }
+      );
+    },
+    [previewIrisInstances]
+  );
+
+  const setAdjustments = useCallback((adjustments: AdjustmentParameters) => {
+    _setAdjustments(adjustments);
+    setInstanceAdjustments(adjustments);
+    scheduleRender();
+  }, []);
+
   return {
     // _irisInstance: irisInstance,
     _previewIrisInstances: previewIrisInstances,
-    irisParameters: {},
     createPreviewInstance: createPreviewInstance,
     destroyPreviewInstance: destroyPreviewInstance,
+    adjustments: adjustments,
+    setAdjustments: setAdjustments,
   };
 };

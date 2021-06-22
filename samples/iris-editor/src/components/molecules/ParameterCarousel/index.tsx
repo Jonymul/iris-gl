@@ -25,7 +25,7 @@ const parameters: (
 ];
 
 export type ParameterCarouselProps = {
-  selectedParameter?: number;
+  selectedParameter: number | undefined;
   onClickParameter(index: number): void;
 };
 

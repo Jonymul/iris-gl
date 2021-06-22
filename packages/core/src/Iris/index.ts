@@ -53,6 +53,10 @@ export class Iris {
     this.canvasRenderer.setImage(inputImage);
   }
 
+  getState() {
+    return this.canvasRenderer.getState();
+  }
+
   setMaxOutputDimensions(dimensions: Dimensions) {
     this.maxOutputDimensions = dimensions;
   }

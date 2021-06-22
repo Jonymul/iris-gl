@@ -159,6 +159,10 @@ export class CanvasRenderer {
     );
   }
 
+  getState() {
+    return this.state;
+  }
+
   setImage(inputImage: ImageData | HTMLImageElement) {
     this.setTexture(inputImage);
   }
