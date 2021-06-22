@@ -1,6 +1,8 @@
 import { AdjustmentParameters } from "../types/AdjustmentParameters";
 import { Dimensions } from "../types/Dimensions";
+import { UniformValue } from "../types/UniformValue";
 import { ShaderCompiler } from "./ShaderCompiler";
+import { warnF32List, warnI32List, warnNumeric, warnUnknownName, warnUnknownType } from "./warnings";
 
 const BASE_VERTEX_SHADER = `
   attribute vec2 position;
@@ -41,6 +43,7 @@ export class CanvasRenderer {
   private context: WebGLRenderingContext;
   private shaderCompiler: ShaderCompiler;
   private currentProgram: WebGLProgram;
+  private programUniformLocations = new Map<string, {type: number, location: WebGLUniformLocation}>();
 
   constructor(targetCanvas: HTMLCanvasElement) {
     this.canvas = targetCanvas;
@@ -61,6 +64,7 @@ export class CanvasRenderer {
       this.shaderCompiler.compileFragmentShader(BASE_FRAGMENT_SHADER),
     ]);
     this.useProgram(program);
+    this.getUniforms();
   }
 
   private createProgram(shaders: WebGLShader[]) {
@@ -82,6 +86,99 @@ export class CanvasRenderer {
     const gl = this.context;
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
+  }
+
+  private getUniforms() {
+    const gl = this.context;
+
+    this.programUniformLocations = new Map();
+    const numUniforms = gl.getProgramParameter(this.currentProgram, gl.ACTIVE_UNIFORMS);
+    for (let i = 0; i < numUniforms; i++) {
+      const info = gl.getActiveUniform(this.currentProgram, i);
+      if (info === null) {
+        throw new Error(`Couldn't get uniform at index: ${i}.`);
+      }
+      const location = gl.getUniformLocation(this.currentProgram, info.name);
+      if (location) {
+        this.programUniformLocations.set(info.name, {type: info.type, location});
+      }
+    }
+  }
+
+  private setUniform(name: string, value: UniformValue) {
+    const gl = this.context;
+
+    if (!this.programUniformLocations.has(name)) {
+      warnUnknownName(name);
+      return;
+    }
+
+    const info = this.programUniformLocations.get(name);
+
+    switch (info.type) {
+      case gl.FLOAT:
+        if (typeof value !== "number") {
+          warnNumeric(name, value);
+          break;
+        }
+        gl.uniform1fv(info.location, [value]);
+        break;
+      case gl.FLOAT_VEC2:
+        if (!(value instanceof Float32Array)) {
+          warnF32List(name, value);
+          break;
+        }
+        gl.uniform2fv(info.location, value);
+        break;
+      case gl.FLOAT_VEC3:
+        if (!(value instanceof Float32Array)) {
+          warnF32List(name, value);
+          break;
+        }
+        gl.uniform3fv(info.location, value);
+        break;
+      case gl.FLOAT_VEC4:
+        if (!(value instanceof Float32Array)) {
+          warnF32List(name, value);
+          break;
+        }
+        gl.uniform4fv(info.location, value);
+        break;
+      case gl.BOOL:
+      case gl.INT:
+        if (typeof value !== "number") {
+          warnNumeric(name, value);
+          break;
+        }
+        gl.uniform1iv(info.location, [value]);
+        break;
+      case gl.BOOL_VEC2:
+      case gl.INT_VEC2:
+        if (!(value instanceof Int32Array)) {
+          warnI32List(name, value);
+          break;
+        }
+        gl.uniform2iv(info.location, value);
+        break;
+      case gl.BOOL_VEC3:
+      case gl.INT_VEC3:
+        if (!(value instanceof Int32Array)) {
+          warnI32List(name, value);
+          break;
+        }
+        gl.uniform3iv(info.location, value);
+        break;
+      case gl.BOOL_VEC4:
+      case gl.INT_VEC4:
+        if (!(value instanceof Int32Array)) {
+          warnI32List(name, value);
+          break;
+        }
+        gl.uniform4iv(info.location, value);
+        break;
+      default:
+        warnUnknownType(name);
+    }
   }
 
   private setTexture(
@@ -141,8 +238,7 @@ export class CanvasRenderer {
     gl.enableVertexAttribArray(positionLocation);
 
     // Set our adjustments
-    const b = gl.getUniformLocation(this.currentProgram, "brightness");
-    gl.uniform1fv(b, [params.adjustments.brightness]);
+    this.setUniform("brightness", params.adjustments.brightness);
 
     // Draw our 6 VERTICES as 2 triangles
     gl.drawArrays(gl.TRIANGLES, 0, 6);

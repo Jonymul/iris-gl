@@ -1,0 +1,1 @@
+export type UniformValue = number | Float32Array | Int32Array;
