@@ -24,7 +24,7 @@ export type CarouselProps = HTMLAttributes<HTMLUListElement> & {
   paddingX?: string;
   paddingY?: string;
   snapSkipConstructors?: FC[];
-  focusedItem?: number;
+  focusedItem: number | undefined;
   onFocusedItemChange?(index: number): void;
   _highlightIndicator?: ReactElement;
 };
@@ -44,6 +44,7 @@ export const Carousel = forwardRef<HTMLUListElement, CarouselProps>(
       ...baseProps
     } = props;
     const carouselRef = useRef<HTMLUListElement>(null);
+    const isAutoScrolling = useRef(false);
     const [internalFocusedItem, setInternalFocusedItem] = useState(focusedItem);
 
     const itemArray = useMemo(
@@ -73,6 +74,12 @@ export const Carousel = forwardRef<HTMLUListElement, CarouselProps>(
       ) {
         return;
       }
+
+      isAutoScrolling.current = true;
+      setTimeout(() => {
+        // This should be a nicer scroll-handle check.
+        isAutoScrolling.current = false;
+      }, 1500);
 
       const targetIndex =
         focusedItem +
@@ -122,12 +129,12 @@ export const Carousel = forwardRef<HTMLUListElement, CarouselProps>(
         if (closestIndex !== internalFocusedItem) {
           setInternalFocusedItem(closestIndex);
           navigator.vibrate(10);
-          if (onFocusedItemChange !== undefined) {
+          if (onFocusedItemChange !== undefined && !isAutoScrolling.current) {
             onFocusedItemChange(closestIndex);
           }
         }
       },
-      [ignoredItemIndeces, internalFocusedItem, onFocusedItemChange]
+      [ignoredItemIndeces, internalFocusedItem, onFocusedItemChange, isAutoScrolling]
     );
 
     useLayoutEffect(() => {
@@ -175,7 +182,7 @@ export const Carousel = forwardRef<HTMLUListElement, CarouselProps>(
             return (
               <li
                 key={index}
-                role={isIgnoredConstructor ? "presentation" : undefined}
+                role={isIgnoredConstructor ? "presentation" : ""}
                 css={css`
                   flex: 0 0 auto;
                   margin-right: ${gap};
