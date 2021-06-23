@@ -27,6 +27,8 @@ const parameters: (
   { icon: "vignette", label: "Vignette", index: 11, parameter: "vignette" },
 ];
 
+const parameterIndexes = (parameters.filter(p => p !== "DIVIDER") as ParameterChipDef[]).map(p => p.parameter);
+
 export type ParameterCarouselProps = {
   selectedParameter: AdjustmentParameter | "crop" | "none";
   onClickParameter(parameter: AdjustmentParameter | "crop" | "none"): void;
@@ -44,8 +46,8 @@ export const ParameterCarousel: FC<ParameterCarouselProps> = (props) => {
       paddingX={hasSelectedItem ? "50%" : "24px"}
       snap={hasSelectedItem ? "center" : "start"}
       snapSkipConstructors={[ParameterDivider]}
-      focusedItem={(parameters.find(p => p !== "DIVIDER" && p.parameter === selectedParameter) as ParameterChipDef | undefined)?.index || 0}
-      onFocusedItemChange={(index) => onClickParameter((parameters.find(p => p !== "DIVIDER" && p.index === index) as ParameterChipDef | undefined)?.parameter || "none")}
+      focusedItem={selectedParameter !== "none" ? parameterIndexes.indexOf(selectedParameter) : undefined}
+      onFocusedItemChange={(index) => onClickParameter(parameterIndexes[index] || "none")}
     >
       {parameters.map((param, index) =>
         param === "DIVIDER" ? (
