@@ -81,7 +81,7 @@ const BASE_FRAGMENT_SHADER = `
     color.rgb = adjustBrightness(color.rgb, brightness);
     color.rgb = adjustBrightness(color.rgb, exposure);
     color.rgb = adjustContrast(color.rgb, contrast);
-    color.rgb = adjustShadowsHighlights(color.rgb, shadows, highlights);
+    // color.rgb = adjustShadowsHighlights(color.rgb, shadows, highlights);
     color.rgb = adjustTempTint(color.rgb, warmth, tint);
     color.rgb = adjustSaturation(color.rgb, saturation);
 
@@ -299,8 +299,8 @@ export class CanvasRenderer {
     this.setUniform("brightness", params.adjustments.brightness);
     this.setUniform("exposure", params.adjustments.exposure);
     this.setUniform("contrast", params.adjustments.contrast);
-    this.setUniform("highlights", params.adjustments.highlights);
-    this.setUniform("shadows", params.adjustments.shadows);
+    // this.setUniform("highlights", params.adjustments.highlights);
+    // this.setUniform("shadows", params.adjustments.shadows);
     this.setUniform("saturation", params.adjustments.saturation);
     this.setUniform("warmth", params.adjustments.warmth);
     this.setUniform("tint", params.adjustments.tint);
