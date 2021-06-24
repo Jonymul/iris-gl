@@ -127,6 +127,7 @@ export const ParameterControl: FC<ParameterControlProps> = (props) => {
           position: relative;
           width: 100%;
         `}
+        {...baseProps}
       >
         <div
           css={css`
@@ -171,6 +172,7 @@ export const ParameterControl: FC<ParameterControlProps> = (props) => {
             overflow-x: scroll;
             overflow-y: hidden;
             padding-top: 30px;
+            padding-bottom: 37px;
 
             &:before,
             &:after {
