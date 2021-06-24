@@ -17,10 +17,6 @@ const BASE_VERTEX_SHADER = `
 
 const BASE_FRAGMENT_SHADER = `
   precision highp float;
-
-  // https://www.w3.org/TR/WCAG21/#dfn-relative-luminance
-  const vec3 perceptiveLuminocities = vec3(0.2126, 0.7152, 0.0722);
-
   varying vec2 texCoords;
 
   uniform sampler2D textureSampler;
@@ -29,14 +25,32 @@ const BASE_FRAGMENT_SHADER = `
   uniform float contrast;
   uniform float saturation;
 
+  vec3 adjustBrightness(vec3 color, float value) {
+    return color + value;
+  }
+
+  vec3 adjustExposure(vec3 color, float value) {
+    return color * (value + 1.0);
+  }
+
+  vec3 adjustContrast(vec3 color, float value) {
+    return 0.5 + (value + 1.0) * (color.rgb - 0.5);
+  }
+
+  vec3 adjustSaturation(vec3 color, float value) {
+    // WCAG 2.1 relative luminance base
+    const vec3 perceptiveLuminocities = vec3(0.2126, 0.7152, 0.0722);
+    vec3 grayscaleColor = vec3(dot(color.rgb, perceptiveLuminocities));
+    return mix(grayscaleColor, color, 1.0 + value);
+  }
+
   void main() {
     vec4 color = texture2D(textureSampler, texCoords);
     
-    color.rgb += brightness;
-    color.rgb *= exposure + 1.0;
-    color.rgb = 0.5 + (contrast + 1.0) * (color.rgb - 0.5);
-    vec3 grayscaleColor = vec3(dot(color.rgb, perceptiveLuminocities));
-    color.rgb = mix(grayscaleColor, color.rgb, 1.0 + saturation);
+    color.rgb = adjustBrightness(color.rgb, brightness);
+    color.rgb = adjustBrightness(color.rgb, exposure);
+    color.rgb = adjustContrast(color.rgb, contrast);
+    color.rgb = adjustSaturation(color.rgb, saturation);
 
     gl_FragColor = color;
   }
