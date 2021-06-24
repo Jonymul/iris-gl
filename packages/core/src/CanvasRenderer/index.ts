@@ -24,24 +24,45 @@ const BASE_FRAGMENT_SHADER = `
   uniform float exposure;
   uniform float contrast;
   uniform float saturation;
+  uniform float warmth;
+  uniform float tint;
 
-  vec3 adjustBrightness(vec3 color, float value) {
-    return color + value;
+  vec3 adjustBrightness(vec3 color, float brightness) {
+    return color + brightness;
   }
 
-  vec3 adjustExposure(vec3 color, float value) {
-    return color * (value + 1.0);
+  vec3 adjustExposure(vec3 color, float exposure) {
+    return color * (exposure + 1.0);
   }
 
-  vec3 adjustContrast(vec3 color, float value) {
-    return 0.5 + (value + 1.0) * (color.rgb - 0.5);
+  vec3 adjustContrast(vec3 color, float contrast) {
+    return 0.5 + (contrast + 1.0) * (color.rgb - 0.5);
   }
 
-  vec3 adjustSaturation(vec3 color, float value) {
+  vec3 adjustSaturation(vec3 color, float saturation) {
     // WCAG 2.1 relative luminance base
     const vec3 perceptiveLuminocities = vec3(0.2126, 0.7152, 0.0722);
     vec3 grayscaleColor = vec3(dot(color.rgb, perceptiveLuminocities));
-    return mix(grayscaleColor, color, 1.0 + value);
+    return mix(grayscaleColor, color, 1.0 + saturation);
+  }
+
+  vec3 adjustTempTint(vec3 color, float warmth, float tint) {
+    const vec3 warmFilter = vec3(0.93, 0.54, 0.0);
+    const mat3 RGBtoYIQ = mat3(0.299, 0.587, 0.114, 0.596, -0.274, -0.322, 0.212, -0.523, 0.311);
+    const mat3 YIQtoRGB = mat3(1.0, 0.956, 0.621, 1.0, -0.272, -0.647, 1.0, -1.105, 1.702);
+
+    // adjusting tint
+    vec3 yiq = RGBtoYIQ * color;
+    yiq.b = clamp(yiq.b + tint*0.5226*0.1, -0.5226, 0.5226);
+    vec3 rgb = YIQtoRGB * yiq;
+
+    // adjusting warmth
+    vec3 processed = vec3(
+      (rgb.r < 0.5 ? (2.0 * rgb.r * warmFilter.r) : (1.0 - 2.0 * (1.0 - rgb.r) * (1.0 - warmFilter.r))),
+      (rgb.g < 0.5 ? (2.0 * rgb.g * warmFilter.g) : (1.0 - 2.0 * (1.0 - rgb.g) * (1.0 - warmFilter.g))),
+      (rgb.b < 0.5 ? (2.0 * rgb.b * warmFilter.b) : (1.0 - 2.0 * (1.0 - rgb.b) * (1.0 - warmFilter.b)))
+    );
+    return mix(rgb, processed, warmth);
   }
 
   void main() {
@@ -50,6 +71,7 @@ const BASE_FRAGMENT_SHADER = `
     color.rgb = adjustBrightness(color.rgb, brightness);
     color.rgb = adjustBrightness(color.rgb, exposure);
     color.rgb = adjustContrast(color.rgb, contrast);
+    color.rgb = adjustTempTint(color.rgb, warmth, tint);
     color.rgb = adjustSaturation(color.rgb, saturation);
 
     gl_FragColor = color;
@@ -267,6 +289,8 @@ export class CanvasRenderer {
     this.setUniform("exposure", params.adjustments.exposure);
     this.setUniform("contrast", params.adjustments.contrast);
     this.setUniform("saturation", params.adjustments.saturation);
+    this.setUniform("warmth", params.adjustments.warmth);
+    this.setUniform("tint", params.adjustments.tint);
 
     // Draw our 6 VERTICES as 2 triangles
     gl.drawArrays(gl.TRIANGLES, 0, 6);
