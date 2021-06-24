@@ -17,15 +17,15 @@ export const IrisPreview: FunctionComponent<IrisPreviewProps> = (props) => {
   const canvasRef = useRef<HTMLCanvasElement>();
 
   useEffect(() => {
+    const devicePixelRatio = window?.devicePixelRatio || 1;
     const [instance, reference] = irisContext.createPreviewInstance({
       canvas: canvasRef.current,
       maxDimensions: {
-        width: containerRef.current.clientWidth,
-        height: containerRef.current.clientHeight,
+        width: containerRef.current.clientWidth * devicePixelRatio,
+        height: containerRef.current.clientHeight * devicePixelRatio,
       },
     });
     setIris(instance);
-    // instance.render();
 
     return () => {
       irisContext.destroyPreviewInstance(reference);
@@ -34,7 +34,7 @@ export const IrisPreview: FunctionComponent<IrisPreviewProps> = (props) => {
 
   return (
     <div ref={containerRef} {...props}>
-      <canvas ref={canvasRef} />
+      <canvas ref={canvasRef} style={{ maxWidth: "100%", maxHeight: "100%" }} />
     </div>
   );
 };
