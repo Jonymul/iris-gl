@@ -23,6 +23,8 @@ const BASE_FRAGMENT_SHADER = `
   uniform float brightness;
   uniform float exposure;
   uniform float contrast;
+  uniform float shadows;
+  uniform float highlights;
   uniform float saturation;
   uniform float warmth;
   uniform float tint;
@@ -32,17 +34,25 @@ const BASE_FRAGMENT_SHADER = `
   }
 
   vec3 adjustExposure(vec3 color, float exposure) {
-    return color * (exposure + 1.0);
+    return color * pow(2.0, exposure + 1.0);
   }
 
   vec3 adjustContrast(vec3 color, float contrast) {
     return 0.5 + (contrast + 1.0) * (color.rgb - 0.5);
   }
 
+  vec3 adjustShadowsHighlights(vec3 color, float shadows, float highlights) {
+    const vec3 luminanceWeighting = vec3(0.3, 0.3, 0.3);
+    float luminance = dot(color, luminanceWeighting);
+    float shadow = clamp((pow(luminance, 1.0/(shadows+1.0)) + (-0.76)*pow(luminance, 2.0/(shadows+1.0))) - luminance, 0.0, 1.0);
+    float highlight = clamp((1.0 - (pow(1.0-luminance, 1.0/(1.0-highlights)) + (-0.8)*pow(1.0-luminance, 2.0/(1.0-highlights)))) - luminance, -1.0, 0.0);
+    return vec3(0.0, 0.0, 0.0) + ((luminance + shadow + highlight)) * ((color - vec3(0.0, 0.0, 0.0))/luminance);
+  }
+
   vec3 adjustSaturation(vec3 color, float saturation) {
     // WCAG 2.1 relative luminance base
-    const vec3 perceptiveLuminocities = vec3(0.2126, 0.7152, 0.0722);
-    vec3 grayscaleColor = vec3(dot(color.rgb, perceptiveLuminocities));
+    const vec3 luminanceWeighting = vec3(0.2126, 0.7152, 0.0722);
+    vec3 grayscaleColor = vec3(dot(color, luminanceWeighting));
     return mix(grayscaleColor, color, 1.0 + saturation);
   }
 
@@ -71,6 +81,7 @@ const BASE_FRAGMENT_SHADER = `
     color.rgb = adjustBrightness(color.rgb, brightness);
     color.rgb = adjustBrightness(color.rgb, exposure);
     color.rgb = adjustContrast(color.rgb, contrast);
+    color.rgb = adjustShadowsHighlights(color.rgb, shadows, highlights);
     color.rgb = adjustTempTint(color.rgb, warmth, tint);
     color.rgb = adjustSaturation(color.rgb, saturation);
 
@@ -288,6 +299,8 @@ export class CanvasRenderer {
     this.setUniform("brightness", params.adjustments.brightness);
     this.setUniform("exposure", params.adjustments.exposure);
     this.setUniform("contrast", params.adjustments.contrast);
+    this.setUniform("highlights", params.adjustments.highlights);
+    this.setUniform("shadows", params.adjustments.shadows);
     this.setUniform("saturation", params.adjustments.saturation);
     this.setUniform("warmth", params.adjustments.warmth);
     this.setUniform("tint", params.adjustments.tint);
