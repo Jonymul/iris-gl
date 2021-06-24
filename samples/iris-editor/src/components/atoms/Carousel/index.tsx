@@ -19,7 +19,7 @@ import { useEffect } from "react";
 
 export type CarouselProps = HTMLAttributes<HTMLUListElement> & {
   children: ReactElement[] | ReactElement;
-  snap?: "start" | "center";
+  snap?: "start" | "center" | "none";
   gap?: string;
   paddingX?: string;
   paddingY?: string;

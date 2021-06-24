@@ -1,5 +1,5 @@
 import { AdjustmentParameter } from "@iris/core";
-import { FC, useMemo } from "react";
+import { FC, useCallback, useMemo } from "react";
 import { Carousel } from "../../atoms/Carousel";
 import { ParameterChip } from "../../atoms/ParameterChip";
 import { ParameterDivider } from "../../atoms/ParameterDivider";
@@ -37,17 +37,25 @@ export type ParameterCarouselProps = {
 export const ParameterCarousel: FC<ParameterCarouselProps> = (props) => {
   const { selectedParameter, onClickParameter } = props;
   const hasSelectedItem = useMemo(
-    () => selectedParameter !== undefined,
+    () => selectedParameter !== "none",
     [selectedParameter]
   );
 
+  const handleFocusedItemChange = useCallback((index: number) => {
+    if (selectedParameter === "none") {
+      return;
+    }
+
+    onClickParameter(parameterIndexes[index] || "none")
+  }, [selectedParameter, onClickParameter]);
+
   return (
     <Carousel
-      paddingX={hasSelectedItem ? "50%" : "24px"}
-      snap={hasSelectedItem ? "center" : "start"}
+      paddingX="calc(50% - 28px)"
+      snap={hasSelectedItem ? "center" : "none"}
       snapSkipConstructors={[ParameterDivider]}
       focusedItem={selectedParameter !== "none" ? parameterIndexes.indexOf(selectedParameter) : undefined}
-      onFocusedItemChange={(index) => onClickParameter(parameterIndexes[index] || "none")}
+      onFocusedItemChange={handleFocusedItemChange}
     >
       {parameters.map((param, index) =>
         param === "DIVIDER" ? (
