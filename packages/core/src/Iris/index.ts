@@ -12,7 +12,7 @@ export class Iris {
   private inputDimensions: Dimensions = { width: 0, height: 0 };
   private adjustmentParams: AdjustmentParameters = defaultAdjustmentParameters;
   private cropParams: CropParameters = defaultCropParameters;
-  private maxOutputDimensions: Dimensions;
+  private maxOutputDimensions: Dimensions & { pixelRatio: number };
 
   constructor(targetCanvas: HTMLCanvasElement) {
     this.canvasRenderer = new CanvasRenderer(targetCanvas);
@@ -33,6 +33,10 @@ export class Iris {
       width: this.inputDimensions.width * targetRatio,
       height: this.inputDimensions.height * targetRatio,
     };
+  }
+
+  private getOutputPixelRatio() {
+    return this.maxOutputDimensions?.pixelRatio || 1;
   }
 
   setImage(inputImage: ImageData | HTMLImageElement) {
@@ -57,8 +61,8 @@ export class Iris {
     return this.canvasRenderer.getState();
   }
 
-  setMaxOutputDimensions(dimensions: Dimensions) {
-    this.maxOutputDimensions = dimensions;
+  setMaxOutputDimensions(dimensions: Dimensions, pixelRatio?: number) {
+    this.maxOutputDimensions = {...dimensions, pixelRatio: pixelRatio || 1};
   }
 
   setAdjustments(adjustments: AdjustmentParameters) {
@@ -87,6 +91,6 @@ export class Iris {
   }
 
   render() {
-    return this.canvasRenderer.render({ ...this.getOutputDimensions(), adjustments: this.adjustmentParams });
+    return this.canvasRenderer.render({ ...this.getOutputDimensions(), pixelRatio: this.getOutputPixelRatio(), adjustments: this.adjustmentParams });
   }
 }

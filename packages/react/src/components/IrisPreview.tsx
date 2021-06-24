@@ -20,9 +20,10 @@ export const IrisPreview: FunctionComponent<IrisPreviewProps> = (props) => {
     const devicePixelRatio = window?.devicePixelRatio || 1;
     const [instance, reference] = irisContext.createPreviewInstance({
       canvas: canvasRef.current,
+      pixelRatio: devicePixelRatio,
       maxDimensions: {
-        width: containerRef.current.clientWidth * devicePixelRatio,
-        height: containerRef.current.clientHeight * devicePixelRatio,
+        width: containerRef.current.clientWidth,
+        height: containerRef.current.clientHeight,
       },
     });
     setIris(instance);
@@ -34,7 +35,7 @@ export const IrisPreview: FunctionComponent<IrisPreviewProps> = (props) => {
 
   return (
     <div ref={containerRef} {...props}>
-      <canvas ref={canvasRef} style={{ maxWidth: "100%", maxHeight: "100%" }} />
+      <canvas ref={canvasRef} />
     </div>
   );
 };

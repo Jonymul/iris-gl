@@ -36,15 +36,16 @@ export const useRootIrisContextValue = (): IIrisContext => {
   const createPreviewInstance = useCallback(
     (params: {
       canvas: HTMLCanvasElement;
+      pixelRatio: number;
       maxDimensions?: { width: number; height: number };
     }): [Iris, symbol] => {
-      const { maxDimensions } = params;
+      const { maxDimensions, pixelRatio } = params;
       const reference = Symbol();
       const instance = new Iris(params.canvas);
       instance.setAdjustments(adjustments);
 
       if (maxDimensions !== undefined) {
-        instance.setMaxOutputDimensions(maxDimensions);
+        instance.setMaxOutputDimensions(maxDimensions, pixelRatio);
       }
 
       previewIrisInstances.current = {

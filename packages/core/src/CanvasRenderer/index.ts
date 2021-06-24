@@ -269,7 +269,7 @@ export class CanvasRenderer {
     this.state = "Ready";
   }
 
-  private draw(params: Dimensions & { adjustments: AdjustmentParameters }) {
+  private draw(params: Dimensions & { adjustments: AdjustmentParameters, pixelRatio: number }) {
     const gl = this.context;
 
     if (this.state !== "Ready") {
@@ -278,8 +278,10 @@ export class CanvasRenderer {
       );
     }
 
-    this.canvas.width = params.width;
-    this.canvas.height = params.height;
+    this.canvas.width = params.width * params.pixelRatio;
+    this.canvas.height = params.height * params.pixelRatio;
+    this.canvas.style.width = `${params.width}px`;
+    this.canvas.style.height = `${params.height}px`;
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
     // Bind VERTICES as the active array buffer.
@@ -339,7 +341,7 @@ export class CanvasRenderer {
     this.setTexture(inputImage);
   }
 
-  render(params: Dimensions & {adjustments: AdjustmentParameters}) {
+  render(params: Dimensions & { adjustments: AdjustmentParameters, pixelRatio: number }) {
     this.draw(params);
     return this.getImageDataFromCanvas();
   }

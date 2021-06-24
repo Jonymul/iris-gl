@@ -5,6 +5,7 @@ export type IIrisContext = {
   _previewIrisInstances: Record<symbol, Iris>;
   createPreviewInstance(params: {
     canvas: HTMLCanvasElement;
+    pixelRatio: number;
     maxDimensions: Dimensions;
   }): [Iris, symbol];
   destroyPreviewInstance(instance: symbol): void;
