@@ -17,15 +17,26 @@ const BASE_VERTEX_SHADER = `
 
 const BASE_FRAGMENT_SHADER = `
   precision highp float;
-  varying vec2 texCoords;
-  uniform sampler2D textureSampler;
 
+  // https://www.w3.org/TR/WCAG21/#dfn-relative-luminance
+  const vec3 perceptiveLuminocities = vec3(0.2126, 0.7152, 0.0722);
+
+  varying vec2 texCoords;
+
+  uniform sampler2D textureSampler;
   uniform float brightness;
+  uniform float exposure;
+  uniform float contrast;
+  uniform float saturation;
 
   void main() {
     vec4 color = texture2D(textureSampler, texCoords);
-
+    
     color.rgb += brightness;
+    color.rgb *= exposure + 1.0;
+    color.rgb = 0.5 + (contrast + 1.0) * (color.rgb - 0.5);
+    vec3 grayscaleColor = vec3(dot(color.rgb, perceptiveLuminocities));
+    color.rgb = mix(grayscaleColor, color.rgb, 1.0 + saturation);
 
     gl_FragColor = color;
   }
@@ -239,6 +250,9 @@ export class CanvasRenderer {
 
     // Set our adjustments
     this.setUniform("brightness", params.adjustments.brightness);
+    this.setUniform("exposure", params.adjustments.exposure);
+    this.setUniform("contrast", params.adjustments.contrast);
+    this.setUniform("saturation", params.adjustments.saturation);
 
     // Draw our 6 VERTICES as 2 triangles
     gl.drawArrays(gl.TRIANGLES, 0, 6);
