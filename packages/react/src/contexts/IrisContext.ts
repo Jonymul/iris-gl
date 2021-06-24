@@ -18,7 +18,7 @@ export const useRootIrisContextValue = (): IIrisContext => {
   );
 
   const imageElem = useTempGetImageData(
-    "https://images.unsplash.com/photo-1531891570158-e71b35a485bc?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fH"
+    "/jag.jpg"
   );
 
   useEffect(() => {
