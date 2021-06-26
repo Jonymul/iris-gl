@@ -108,7 +108,6 @@ export const useRootIrisContextValue = (): IIrisContext => {
   }, []);
 
   return {
-    // _irisInstance: irisInstance,
     _previewIrisInstances: previewIrisInstances,
     createPreviewInstance: createPreviewInstance,
     destroyPreviewInstance: destroyPreviewInstance,

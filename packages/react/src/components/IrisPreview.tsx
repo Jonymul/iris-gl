@@ -3,15 +3,12 @@ import {
   HTMLAttributes,
   useEffect,
   useRef,
-  useState,
 } from "react";
-import { Iris } from "@iris/core";
 import { useIrisContext } from "../hooks/useIrisContext";
 
 export type IrisPreviewProps = HTMLAttributes<HTMLDivElement>;
 
 export const IrisPreview: FunctionComponent<IrisPreviewProps> = (props) => {
-  const [iris, setIris] = useState<Iris>(undefined);
   const irisContext = useIrisContext();
   const containerRef = useRef<HTMLDivElement>();
   const canvasRef = useRef<HTMLCanvasElement>();
@@ -26,7 +23,6 @@ export const IrisPreview: FunctionComponent<IrisPreviewProps> = (props) => {
         height: containerRef.current.clientHeight,
       },
     });
-    setIris(instance);
 
     return () => {
       irisContext.destroyPreviewInstance(reference);
