@@ -126,6 +126,17 @@ export const ParameterControl: FC<ParameterControlProps> = (props) => {
         css={css`
           position: relative;
           width: 100%;
+
+          &:before {
+            content: "";
+            pointer-events: none;
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(90deg, rgba(35, 35, 35, 1), rgba(35, 35, 35, 0) 20%, rgba(35, 35, 35, 0) 80%, rgba(35, 35, 35, 1));
+          }
         `}
         {...baseProps}
       >
@@ -160,6 +171,7 @@ export const ParameterControl: FC<ParameterControlProps> = (props) => {
               text-transform: uppercase;
               text-align: center;
               width: 4em;
+              pointer-events: none;
             `}
           >
             {valueCent}
