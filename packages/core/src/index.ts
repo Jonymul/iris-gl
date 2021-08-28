@@ -4,4 +4,5 @@ export {
   AdjustmentParameter,
   AdjustmentParameters,
   defaultAdjustmentParameters,
+  adjustmentParameterConfig,
 } from "./types/AdjustmentParameters";
