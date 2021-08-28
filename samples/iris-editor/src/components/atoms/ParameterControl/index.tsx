@@ -39,7 +39,9 @@ export const ParameterControl: FC<ParameterControlProps> = (props) => {
     const pixelRatio = window?.devicePixelRatio ?? 1;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    const w = canvas.clientWidth * pixelRatio;
+    const w = canvas.clientWidth * pixelRatio * (length / 2);
+    // ^ 50% per unit. For some reason the canvas clientWidth isn't what I expected..
+    // Therefore, I multiply it by (length / 2)
     const h = canvas.clientHeight * pixelRatio;
     const totalMarks = length * 20;
     const distanceBetweenMarks = (w - pixelRatio) / totalMarks;
@@ -135,7 +137,13 @@ export const ParameterControl: FC<ParameterControlProps> = (props) => {
             right: 0;
             bottom: 0;
             left: 0;
-            background: linear-gradient(90deg, rgba(35, 35, 35, 1), rgba(35, 35, 35, 0) 20%, rgba(35, 35, 35, 0) 80%, rgba(35, 35, 35, 1));
+            background: linear-gradient(
+              90deg,
+              rgba(35, 35, 35, 1),
+              rgba(35, 35, 35, 0) 20%,
+              rgba(35, 35, 35, 0) 80%,
+              rgba(35, 35, 35, 1)
+            );
           }
         `}
         {...baseProps}
