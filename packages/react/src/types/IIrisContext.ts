@@ -9,5 +9,5 @@ export type IIrisContext = {
   }): [Iris, symbol];
   destroyPreviewInstance(instance: symbol): void;
   adjustments: AdjustmentParameters;
-  setAdjustments(adjustments: AdjustmentParameters);
+  setAdjustments(adjustments: AdjustmentParameters): void;
 };

@@ -2,7 +2,13 @@ import { AdjustmentParameters } from "../types/AdjustmentParameters";
 import { Dimensions } from "../types/Dimensions";
 import { UniformValue } from "../types/UniformValue";
 import { ShaderCompiler } from "./ShaderCompiler";
-import { warnF32List, warnI32List, warnNumeric, warnUnknownName, warnUnknownType } from "./warnings";
+import {
+  warnF32List,
+  warnI32List,
+  warnNumeric,
+  warnUnknownName,
+  warnUnknownType,
+} from "./warnings";
 
 const BASE_VERTEX_SHADER = `
   attribute vec2 position;
@@ -34,19 +40,11 @@ const BASE_FRAGMENT_SHADER = `
   }
 
   vec3 adjustExposure(vec3 color, float exposure) {
-    return color * pow(2.0, exposure + 1.0);
+    return color * pow(2.0, exposure);
   }
 
   vec3 adjustContrast(vec3 color, float contrast) {
     return 0.5 + (contrast + 1.0) * (color.rgb - 0.5);
-  }
-
-  vec3 adjustShadowsHighlights(vec3 color, float shadows, float highlights) {
-    const vec3 luminanceWeighting = vec3(0.3, 0.3, 0.3);
-    float luminance = dot(color, luminanceWeighting);
-    float shadow = clamp((pow(luminance, 1.0/(shadows+1.0)) + (-0.76)*pow(luminance, 2.0/(shadows+1.0))) - luminance, 0.0, 1.0);
-    float highlight = clamp((1.0 - (pow(1.0-luminance, 1.0/(1.0-highlights)) + (-0.8)*pow(1.0-luminance, 2.0/(1.0-highlights)))) - luminance, -1.0, 0.0);
-    return vec3(0.0, 0.0, 0.0) + ((luminance + shadow + highlight)) * ((color - vec3(0.0, 0.0, 0.0))/luminance);
   }
 
   vec3 adjustSaturation(vec3 color, float saturation) {
@@ -75,13 +73,24 @@ const BASE_FRAGMENT_SHADER = `
     return mix(rgb, processed, warmth);
   }
 
+  vec3 adjustShadowsHighlights(vec3 color, float shadows, float highlights) {
+    const vec3 luminanceWeighting = vec3(0.3, 0.3, 0.3);
+    mediump float luminance = dot(color, luminanceWeighting);
+
+    mediump float shadow = clamp((pow(luminance, 1.0/(shadows+1.0)) + (-0.76)*pow(luminance, 2.0/(shadows+1.0))) - luminance, 0.0, 1.0);
+    mediump float highlight = clamp((1.0 - (pow(1.0-luminance, 1.0/(1.0-highlights)) + (-0.8)*pow(1.0-luminance, 2.0/(1.0-highlights)))) - luminance, -1.0, 0.0);
+    lowp vec3 result = vec3(0.0, 0.0, 0.0) + ((luminance + shadow + highlight) - 0.0) * ((color - vec3(0.0, 0.0, 0.0))/(luminance - 0.0));
+
+    return result;
+  }
+
   void main() {
     vec4 color = texture2D(textureSampler, texCoords);
     
+    color.rgb = adjustShadowsHighlights(color.rgb, shadows, highlights);
+    color.rgb = adjustExposure(color.rgb, exposure);
     color.rgb = adjustBrightness(color.rgb, brightness);
-    color.rgb = adjustBrightness(color.rgb, exposure);
     color.rgb = adjustContrast(color.rgb, contrast);
-    // color.rgb = adjustShadowsHighlights(color.rgb, shadows, highlights);
     color.rgb = adjustTempTint(color.rgb, warmth, tint);
     color.rgb = adjustSaturation(color.rgb, saturation);
 
@@ -101,7 +110,10 @@ export class CanvasRenderer {
   private context: WebGLRenderingContext;
   private shaderCompiler: ShaderCompiler;
   private currentProgram: WebGLProgram;
-  private programUniformLocations = new Map<string, {type: number, location: WebGLUniformLocation}>();
+  private programUniformLocations = new Map<
+    string,
+    { type: number; location: WebGLUniformLocation }
+  >();
 
   constructor(targetCanvas: HTMLCanvasElement) {
     this.canvas = targetCanvas;
@@ -150,7 +162,10 @@ export class CanvasRenderer {
     const gl = this.context;
 
     this.programUniformLocations = new Map();
-    const numUniforms = gl.getProgramParameter(this.currentProgram, gl.ACTIVE_UNIFORMS);
+    const numUniforms = gl.getProgramParameter(
+      this.currentProgram,
+      gl.ACTIVE_UNIFORMS
+    );
     for (let i = 0; i < numUniforms; i++) {
       const info = gl.getActiveUniform(this.currentProgram, i);
       if (info === null) {
@@ -158,7 +173,10 @@ export class CanvasRenderer {
       }
       const location = gl.getUniformLocation(this.currentProgram, info.name);
       if (location) {
-        this.programUniformLocations.set(info.name, {type: info.type, location});
+        this.programUniformLocations.set(info.name, {
+          type: info.type,
+          location,
+        });
       }
     }
   }
@@ -269,7 +287,12 @@ export class CanvasRenderer {
     this.state = "Ready";
   }
 
-  private draw(params: Dimensions & { adjustments: AdjustmentParameters, pixelRatio: number }) {
+  private draw(
+    params: Dimensions & {
+      adjustments: AdjustmentParameters;
+      pixelRatio: number;
+    }
+  ) {
     const gl = this.context;
 
     if (this.state !== "Ready") {
@@ -301,8 +324,8 @@ export class CanvasRenderer {
     this.setUniform("brightness", params.adjustments.brightness);
     this.setUniform("exposure", params.adjustments.exposure);
     this.setUniform("contrast", params.adjustments.contrast);
-    // this.setUniform("highlights", params.adjustments.highlights);
-    // this.setUniform("shadows", params.adjustments.shadows);
+    this.setUniform("highlights", params.adjustments.highlights);
+    this.setUniform("shadows", params.adjustments.shadows);
     this.setUniform("saturation", params.adjustments.saturation);
     this.setUniform("warmth", params.adjustments.warmth);
     this.setUniform("tint", params.adjustments.tint);
@@ -341,7 +364,12 @@ export class CanvasRenderer {
     this.setTexture(inputImage);
   }
 
-  render(params: Dimensions & { adjustments: AdjustmentParameters, pixelRatio: number }) {
+  render(
+    params: Dimensions & {
+      adjustments: AdjustmentParameters;
+      pixelRatio: number;
+    }
+  ) {
     this.draw(params);
     return this.getImageDataFromCanvas();
   }
