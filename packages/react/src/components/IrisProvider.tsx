@@ -1,8 +1,10 @@
-import { FunctionComponent } from "react";
+import { FC, ReactNode } from "react";
 import { useRootIrisContextValue } from "../contexts/IrisContext";
 import * as IrisContext from "../contexts/IrisContext";
 
-export const IrisProvider: FunctionComponent = (props) => {
+export const IrisProvider: FC<{ children: ReactNode | ReactNode[] }> = (
+  props
+) => {
   const contextValue = useRootIrisContextValue();
 
   return (

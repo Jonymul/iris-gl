@@ -17,9 +17,7 @@ export const useRootIrisContextValue = (): IIrisContext => {
     defaultAdjustmentParameters
   );
 
-  const imageElem = useTempGetImageData(
-    "/jag.jpg"
-  );
+  const imageElem = useTempGetImageData("/jag.jpg");
 
   useEffect(() => {
     if (imageElem !== undefined) {
@@ -108,7 +106,7 @@ export const useRootIrisContextValue = (): IIrisContext => {
   }, []);
 
   return {
-    _previewIrisInstances: previewIrisInstances,
+    _previewIrisInstances: previewIrisInstances.current,
     createPreviewInstance: createPreviewInstance,
     destroyPreviewInstance: destroyPreviewInstance,
     adjustments: adjustments,

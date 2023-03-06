@@ -6,16 +6,17 @@
     "@typescript-eslint/parser": "4.23.0",
     "eslint": "7.26.0",
     "eslint-config-airbnb-base": "14.2.1",
-    "eslint-plugin-import": "2.22.1",
-    "lerna": "3.22.1"
+    "eslint-plugin-import": "2.22.1"
   },
   "dependencies": {
-    "typescript": "4.2.4"
+    "typescript": "4.9.5"
   },
-  "workspaces": {
-    "packages": [
-      "packages/*",
-      "samples/*"
-    ]
+  "workspaces": [
+    "./packages/*",
+    "./samples/*"
+  ],
+  "scripts": {
+    "core:build": "cd ./packages/core ; npm run start ; cd ../../",
+    "react:build": "cd ./packages/react ; npm run start ; cd ../../"
   }
 }
