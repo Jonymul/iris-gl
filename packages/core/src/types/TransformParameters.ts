@@ -6,15 +6,18 @@ export enum Rotation {
 }
 
 export type CropParameters = {
-  rotation: Rotation;
-  adjust: number;
   cx: number;
   cy: number;
   dx: number;
   dy: number;
 };
 
-export const defaultCropParameters: CropParameters = {
+export type TransformParameters = CropParameters & {
+  rotation: Rotation;
+  adjust: number;
+};
+
+export const defaultTransformParameters: TransformParameters = {
   rotation: Rotation["0deg"],
   adjust: 0,
   cx: 0.5,

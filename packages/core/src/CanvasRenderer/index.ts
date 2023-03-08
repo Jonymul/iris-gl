@@ -11,6 +11,7 @@ import {
 } from "./warnings";
 import { shaderSrcVertex } from "./shaders/vertex";
 import { shaderSrcFragment } from "./shaders/fragment";
+import { TransformParameters } from "../types/TransformParameters";
 
 const VERTICES = new Float32Array([-1, -1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1]);
 
@@ -207,6 +208,7 @@ export class CanvasRenderer {
 
   private draw(
     params: Dimensions & {
+      transform: TransformParameters;
       adjustments: AdjustmentParameters;
       pixelRatio: number;
     }
@@ -300,6 +302,7 @@ export class CanvasRenderer {
 
   render(
     params: Dimensions & {
+      transform: TransformParameters;
       adjustments: AdjustmentParameters;
       pixelRatio: number;
     }
