@@ -213,6 +213,9 @@ export class CanvasRenderer {
   ) {
     const gl = this.context;
 
+    const textureAspectRatio =
+      this.imageDimensions.height / this.imageDimensions.width;
+
     if (this.state !== "Ready") {
       throw new Error(
         "Iris Failed to render. setImageData() has not been called."
@@ -240,13 +243,7 @@ export class CanvasRenderer {
 
     // Set our globals
     // Note: We may be able to set "textureResolution" less frequently.
-    this.setUniform(
-      "textureResolution",
-      new Float32Array([
-        this.imageDimensions.width,
-        this.imageDimensions.height,
-      ])
-    );
+    this.setUniform("textureAspectRatio", textureAspectRatio);
 
     // Set our transforms
     this.setUniform("translation", new Float32Array([0, 0]));
