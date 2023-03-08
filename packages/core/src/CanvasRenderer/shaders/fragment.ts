@@ -2,7 +2,7 @@ const glsl = (x: unknown): string => x as string;
 
 export const shaderSrcFragment = glsl`
   precision highp float;
-  varying vec2 texCoords;
+  varying vec2 uv;
   uniform vec2 textureResolution;
 
   uniform vec2 translation;
@@ -42,9 +42,9 @@ export const shaderSrcFragment = glsl`
     return scale2D(vec2(1.0, 1.0 / aspectRatio)) * translate2D(vec2(0.5));
   }
 
-  vec2 transformTexCoords(vec2 texCoords, vec2 translation, float rotation, float scale) {
+  vec2 applyTransform(vec2 uv, vec2 translation, float rotation, float scale) {
     float aspectRatio = textureResolution.y / textureResolution.x;
-    vec3 transformCoord = vec3(texCoords, 1.0);
+    vec3 transformCoord = vec3(uv, 1.0);
 
     transformCoord = transformCoord * reprojectZero(aspectRatio);
 
@@ -107,7 +107,7 @@ export const shaderSrcFragment = glsl`
   }
 
   void main() {
-    vec2 sampleCoords = transformTexCoords(texCoords, translation, rotation, scale);
+    vec2 sampleCoords = applyTransform(uv, translation, rotation, scale);
     vec4 color = texture2D(textureSampler, sampleCoords);
     
     color.rgb = adjustShadowsHighlights(color.rgb, shadows, highlights);
