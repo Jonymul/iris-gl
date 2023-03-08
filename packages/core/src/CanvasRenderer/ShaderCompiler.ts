@@ -13,9 +13,9 @@ export class ShaderCompiler {
 
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
       console.error(`Shader failed to compile: ${gl.getShaderInfoLog(shader)}`);
-      // throw new Error(
-      //   `Shader failed to compile: ${gl.getShaderInfoLog(shader)}`
-      // );
+      throw new Error(
+        `Shader failed to compile: ${gl.getShaderInfoLog(shader)}`
+      );
     }
 
     return shader;
