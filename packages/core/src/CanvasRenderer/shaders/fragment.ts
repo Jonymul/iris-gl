@@ -3,6 +3,11 @@ const glsl = (x: unknown): string => x as string;
 export const shaderSrcFragment = glsl`
   precision highp float;
   varying vec2 texCoords;
+  uniform vec2 textureResolution;
+
+  uniform vec2 translation;
+  uniform float rotation;
+  uniform float scale;
 
   uniform sampler2D textureSampler;
   uniform float brightness;
@@ -13,6 +18,44 @@ export const shaderSrcFragment = glsl`
   uniform float saturation;
   uniform float warmth;
   uniform float tint;
+
+  mat3 translate2D(vec2 t) {
+    return mat3(1.0, 0.0, t.x, 0.0, 1.0, t.y, 0.0, 0.0, 1.0);
+  }
+
+  mat3 rotate2D(float r){
+    float c = cos(r);
+    float s = sin(r);
+    return mat3(c, -s, 0, s, c, 0, 0, 0, 1);
+  }
+
+  mat3 scale2D(vec2 s) {
+    mat3 m = mat3(s.x, 0, 0, 0, s.y, 0, 0, 0, 1);
+    return m;
+  }
+
+  mat3 reprojectZero(float aspectRatio) {
+    return translate2D(vec2(-0.5)) * scale2D(vec2(1.0, aspectRatio));
+  }
+
+  mat3 reprojectCenter(float aspectRatio) {
+    return scale2D(vec2(1.0, 1.0 / aspectRatio)) * translate2D(vec2(0.5));
+  }
+
+  vec2 transformTexCoords(vec2 texCoords, vec2 translation, float rotation, float scale) {
+    float aspectRatio = textureResolution.y / textureResolution.x;
+    vec3 transformCoord = vec3(texCoords, 1.0);
+
+    transformCoord = transformCoord * reprojectZero(aspectRatio);
+
+    transformCoord = transformCoord * translate2D(translation);
+    transformCoord = transformCoord * rotate2D(rotation * 2.0);
+    transformCoord = transformCoord * scale2D(vec2(scale));
+
+    transformCoord = transformCoord * reprojectCenter(aspectRatio);
+
+    return vec2(transformCoord.x, transformCoord.y);
+  }
 
   vec3 adjustBrightness(vec3 color, float brightness) {
     return color + brightness;
@@ -64,7 +107,8 @@ export const shaderSrcFragment = glsl`
   }
 
   void main() {
-    vec4 color = texture2D(textureSampler, texCoords);
+    vec2 sampleCoords = transformTexCoords(texCoords, translation, rotation, scale);
+    vec4 color = texture2D(textureSampler, sampleCoords);
     
     color.rgb = adjustShadowsHighlights(color.rgb, shadows, highlights);
     color.rgb = adjustExposure(color.rgb, exposure);

@@ -28,6 +28,10 @@ export class CanvasRenderer {
     string,
     { type: number; location: WebGLUniformLocation }
   >();
+  private imageDimensions: Dimensions = {
+    width: 0,
+    height: 0,
+  };
 
   constructor(targetCanvas: HTMLCanvasElement) {
     this.canvas = targetCanvas;
@@ -234,6 +238,21 @@ export class CanvasRenderer {
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(positionLocation);
 
+    // Set our globals
+    // Note: We may be able to set "textureResolution" less frequently.
+    this.setUniform(
+      "textureResolution",
+      new Float32Array([
+        this.imageDimensions.width,
+        this.imageDimensions.height,
+      ])
+    );
+
+    // Set our transforms
+    this.setUniform("translation", new Float32Array([0, 0]));
+    this.setUniform("rotation", 0);
+    this.setUniform("scale", 1);
+
     // Set our adjustments
     this.setUniform("brightness", params.adjustments.brightness);
     this.setUniform("exposure", params.adjustments.exposure);
@@ -275,6 +294,10 @@ export class CanvasRenderer {
   }
 
   setImage(inputImage: ImageData | HTMLImageElement) {
+    this.imageDimensions = {
+      width: inputImage.width,
+      height: inputImage.height,
+    };
     this.setTexture(inputImage);
   }
 
