@@ -11,8 +11,11 @@ export const IrisContext = createContext<IIrisContext | undefined>(undefined);
 export const { Provider, Consumer } = IrisContext;
 
 export const useRootIrisContextValue = (): IIrisContext => {
-  const previewIrisInstances = useRef<Record<symbol, Iris>>();
+  const irisInstance = useRef<Iris>(new Iris());
   const hasRenderScheduled = useRef(false);
+  const [previewCanvas, setPreviewCanvas] = useState<
+    HTMLCanvasElement | undefined
+  >(undefined);
   const [adjustments, _setAdjustments] = useState<AdjustmentParameters>(
     defaultAdjustmentParameters
   );
@@ -20,64 +23,40 @@ export const useRootIrisContextValue = (): IIrisContext => {
   const imageElem = useTempGetImageData("/jag.jpg");
 
   useEffect(() => {
-    if (imageElem !== undefined) {
-      Object.getOwnPropertySymbols(previewIrisInstances.current).forEach(
-        (reference) => {
-          const instance: Iris = previewIrisInstances.current[reference];
-          instance.setImage(imageElem);
-          instance.render();
-        }
-      );
+    if (imageElem !== undefined && previewCanvas !== undefined) {
+      irisInstance.current.setImage(imageElem);
+      irisInstance.current.render();
     }
-  }, [imageElem, previewIrisInstances.current]);
+  }, [imageElem, previewCanvas, irisInstance.current]);
 
   const createPreviewInstance = useCallback(
     (params: {
       canvas: HTMLCanvasElement;
       pixelRatio: number;
       maxDimensions?: { width: number; height: number };
-    }): [Iris, symbol] => {
-      const { maxDimensions, pixelRatio } = params;
-      const reference = Symbol();
-      const instance = new Iris();
-      instance.attachCanvas(params.canvas);
-      instance.setAdjustments(adjustments);
+    }): void => {
+      const { maxDimensions, pixelRatio, canvas } = params;
+      console.log("createPreviewInstance", { canvas, imageElem });
+      irisInstance.current.attachCanvas(canvas);
 
       if (maxDimensions !== undefined) {
-        instance.setMaxOutputDimensions(maxDimensions, pixelRatio);
+        irisInstance.current.setMaxOutputDimensions(maxDimensions, pixelRatio);
       }
 
-      previewIrisInstances.current = {
-        ...previewIrisInstances.current,
-        [reference]: instance,
-      };
-
-      return [instance, reference];
+      // Purely for firing the setImage useEffect
+      setPreviewCanvas(canvas);
     },
-    [previewIrisInstances, adjustments]
+    [irisInstance, adjustments, imageElem]
   );
 
-  const destroyPreviewInstance = useCallback(
-    (reference: symbol) => {
-      const newPreviewInstances = {
-        ...previewIrisInstances.current,
-      };
-
-      delete newPreviewInstances[reference];
-      previewIrisInstances.current = newPreviewInstances;
-    },
-    [previewIrisInstances]
-  );
+  const destroyPreviewInstance = useCallback(() => {
+    // TODO: Implement
+  }, [irisInstance]);
 
   const render = useCallback(() => {
-    Object.getOwnPropertySymbols(previewIrisInstances.current).forEach(
-      (reference) => {
-        const instance: Iris = previewIrisInstances.current[reference];
-        if (instance.getState() !== "Ready") return;
-        instance.render();
-      }
-    );
-  }, [previewIrisInstances]);
+    if (irisInstance.current.getState() !== "Ready") return;
+    irisInstance.current.render();
+  }, [irisInstance]);
 
   const scheduleRender = useCallback(() => {
     if (!hasRenderScheduled.current) {
@@ -88,26 +67,17 @@ export const useRootIrisContextValue = (): IIrisContext => {
     }
   }, [hasRenderScheduled]);
 
-  const setInstanceAdjustments = useCallback(
+  const setAdjustments = useCallback(
     (adjustments: AdjustmentParameters) => {
-      Object.getOwnPropertySymbols(previewIrisInstances.current).forEach(
-        (reference) => {
-          const instance: Iris = previewIrisInstances.current[reference];
-          instance.setAdjustments(adjustments);
-        }
-      );
+      _setAdjustments(adjustments);
+      irisInstance.current.setAdjustments(adjustments);
+      scheduleRender();
     },
-    [previewIrisInstances]
+    [irisInstance.current]
   );
 
-  const setAdjustments = useCallback((adjustments: AdjustmentParameters) => {
-    _setAdjustments(adjustments);
-    setInstanceAdjustments(adjustments);
-    scheduleRender();
-  }, []);
-
   return {
-    _previewIrisInstances: previewIrisInstances.current,
+    _instance: irisInstance.current,
     createPreviewInstance: createPreviewInstance,
     destroyPreviewInstance: destroyPreviewInstance,
     adjustments: adjustments,

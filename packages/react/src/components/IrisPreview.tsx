@@ -1,9 +1,4 @@
-import {
-  FunctionComponent,
-  HTMLAttributes,
-  useEffect,
-  useRef,
-} from "react";
+import { FunctionComponent, HTMLAttributes, useEffect, useRef } from "react";
 import { useIrisContext } from "../hooks/useIrisContext";
 
 export type IrisPreviewProps = HTMLAttributes<HTMLDivElement>;
@@ -15,7 +10,7 @@ export const IrisPreview: FunctionComponent<IrisPreviewProps> = (props) => {
 
   useEffect(() => {
     const devicePixelRatio = window?.devicePixelRatio || 1;
-    const [instance, reference] = irisContext.createPreviewInstance({
+    irisContext.createPreviewInstance({
       canvas: canvasRef.current,
       pixelRatio: devicePixelRatio,
       maxDimensions: {
@@ -25,7 +20,7 @@ export const IrisPreview: FunctionComponent<IrisPreviewProps> = (props) => {
     });
 
     return () => {
-      irisContext.destroyPreviewInstance(reference);
+      irisContext.destroyPreviewInstance();
     };
   }, []);
 
