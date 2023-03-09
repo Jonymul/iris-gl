@@ -3,7 +3,7 @@ const glsl = (x: unknown): string => x as string;
 export const shaderSrcFragment = glsl`
   precision highp float;
   varying vec2 uv;
-  uniform float textureAspectRatio;
+  uniform float sourceAspectRatio;
 
   uniform vec2 translation;
   uniform float rotation;
@@ -35,11 +35,11 @@ export const shaderSrcFragment = glsl`
   }
 
   mat3 reprojectZero() {
-    return translate2D(vec2(-0.5)) * scale2D(vec2(1.0, textureAspectRatio));
+    return translate2D(vec2(-0.5)) * scale2D(vec2(1.0, sourceAspectRatio));
   }
 
   mat3 reprojectCenter() {
-    return scale2D(vec2(1.0, 1.0 / textureAspectRatio)) * translate2D(vec2(0.5));
+    return scale2D(vec2(1.0, 1.0 / sourceAspectRatio)) * translate2D(vec2(0.5));
   }
 
   vec2 applyTransform(vec2 uv, vec2 translation, float rotation, float scale) {

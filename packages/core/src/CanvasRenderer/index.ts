@@ -29,10 +29,6 @@ export class CanvasRenderer {
     string,
     { type: number; location: WebGLUniformLocation }
   >();
-  private imageDimensions: Dimensions = {
-    width: 0,
-    height: 0,
-  };
 
   constructor(targetCanvas: HTMLCanvasElement) {
     this.canvas = targetCanvas;
@@ -206,17 +202,15 @@ export class CanvasRenderer {
     this.state = "Ready";
   }
 
-  private draw(
-    params: Dimensions & {
+  private draw(params: {
+    sourceDimensions: Dimensions;
+    outputDimensions: Dimensions;
+    renderDimensions: Dimensions;
       transform: TransformParameters;
       adjustments: AdjustmentParameters;
       pixelRatio: number;
-    }
-  ) {
+  }) {
     const gl = this.context;
-
-    const textureAspectRatio =
-      this.imageDimensions.height / this.imageDimensions.width;
 
     if (this.state !== "Ready") {
       throw new Error(
@@ -224,10 +218,15 @@ export class CanvasRenderer {
       );
     }
 
-    this.canvas.width = params.width * params.pixelRatio;
-    this.canvas.height = params.height * params.pixelRatio;
-    this.canvas.style.width = `${params.width}px`;
-    this.canvas.style.height = `${params.height}px`;
+    const sourceAspectRatio =
+      params.sourceDimensions.height / params.sourceDimensions.width;
+
+    // TODO: Remove the concept of render/output dimensions here. It should be handled by the Iris module.
+    // Maybe the canvas resizing could take place in Iris core too. Then pixel ratio is also redundant.
+    this.canvas.width = params.renderDimensions.width * params.pixelRatio;
+    this.canvas.height = params.renderDimensions.height * params.pixelRatio;
+    this.canvas.style.width = `${params.renderDimensions.width}px`;
+    this.canvas.style.height = `${params.renderDimensions.height}px`;
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
     // Bind VERTICES as the active array buffer.
@@ -244,8 +243,8 @@ export class CanvasRenderer {
     gl.enableVertexAttribArray(positionLocation);
 
     // Set our globals
-    // Note: We may be able to set "textureResolution" less frequently.
-    this.setUniform("textureAspectRatio", textureAspectRatio);
+    // Note: We may be able to set "sourceAspectRatio" less frequently.
+    this.setUniform("sourceAspectRatio", sourceAspectRatio);
 
     // Set our transforms
     this.setUniform("translation", new Float32Array([0, 0]));
@@ -293,20 +292,17 @@ export class CanvasRenderer {
   }
 
   setImage(inputImage: ImageData | HTMLImageElement) {
-    this.imageDimensions = {
-      width: inputImage.width,
-      height: inputImage.height,
-    };
     this.setTexture(inputImage);
   }
 
-  render(
-    params: Dimensions & {
+  render(params: {
+    sourceDimensions: Dimensions;
+    outputDimensions: Dimensions;
+    renderDimensions: Dimensions;
       transform: TransformParameters;
       adjustments: AdjustmentParameters;
       pixelRatio: number;
-    }
-  ) {
+  }) {
     this.draw(params);
     return this.getImageDataFromCanvas();
   }
