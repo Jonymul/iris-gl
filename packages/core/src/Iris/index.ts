@@ -30,7 +30,7 @@ export class Iris {
     };
   }
 
-  private getRenderDimensions(): Dimensions {
+  private get renderDimensions(): Dimensions {
     const outputDimensions = this.outputDimensions;
 
     if (this.maxOutputDimensions === undefined) {
@@ -139,7 +139,7 @@ export class Iris {
     return this.canvasRenderer.render({
       sourceDimensions: this.sourceDimensions,
       outputDimensions: this.outputDimensions,
-      renderDimensions: this.getRenderDimensions(),
+      renderDimensions: this.renderDimensions,
       pixelRatio: this.getOutputPixelRatio(),
       adjustments: this.adjustmentParams,
       transform: this.transformParams,
