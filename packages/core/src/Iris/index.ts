@@ -11,17 +11,15 @@ import {
   defaultTransformParameters,
 } from "../types/TransformParameters";
 import { Dimensions } from "../types/Dimensions";
+import { CanvasNotAttachedError } from "../types/CanvasNotAttachedError";
 
 export class Iris {
-  private canvasRenderer: CanvasRenderer;
+  private canvasRenderer: CanvasRenderer | null = null;
+  // Perhaps instead of null, we could default to an offscreen or unmounted canvas
   private sourceDimensions: Dimensions = { width: 0, height: 0 };
   private adjustmentParams: AdjustmentParameters = defaultAdjustmentParameters;
   private transformParams: TransformParameters = defaultTransformParameters;
   private maxOutputDimensions: Dimensions & { pixelRatio: number };
-
-  constructor(targetCanvas: HTMLCanvasElement) {
-    this.canvasRenderer = new CanvasRenderer(targetCanvas);
-  }
 
   private get outputDimensions(): Dimensions {
     return {
@@ -52,7 +50,15 @@ export class Iris {
     return this.maxOutputDimensions?.pixelRatio || 1;
   }
 
+  attachCanvas(targetCanvas: HTMLCanvasElement) {
+    this.canvasRenderer = new CanvasRenderer(targetCanvas);
+  }
+
   setImage(inputImage: ImageData | HTMLImageElement) {
+    if (this.canvasRenderer === null) {
+      throw new CanvasNotAttachedError();
+    }
+
     if (inputImage instanceof ImageData) {
       this.sourceDimensions = {
         width: inputImage.width,
@@ -136,6 +142,10 @@ export class Iris {
   }
 
   render() {
+    if (this.canvasRenderer === null) {
+      throw new CanvasNotAttachedError();
+    }
+
     return this.canvasRenderer.render({
       sourceDimensions: this.sourceDimensions,
       outputDimensions: this.outputDimensions,

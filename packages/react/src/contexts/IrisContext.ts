@@ -39,7 +39,8 @@ export const useRootIrisContextValue = (): IIrisContext => {
     }): [Iris, symbol] => {
       const { maxDimensions, pixelRatio } = params;
       const reference = Symbol();
-      const instance = new Iris(params.canvas);
+      const instance = new Iris();
+      instance.attachCanvas(params.canvas);
       instance.setAdjustments(adjustments);
 
       if (maxDimensions !== undefined) {
