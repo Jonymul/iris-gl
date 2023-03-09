@@ -4,10 +4,10 @@ export const shaderSrcFragment = glsl`
   precision highp float;
   varying vec2 uv;
   uniform float sourceAspectRatio;
+  uniform vec2 desqueezeAspect;
 
   uniform vec2 translation;
   uniform float rotation;
-  uniform float scale;
 
   uniform sampler2D textureSampler;
   uniform float brightness;
@@ -42,14 +42,18 @@ export const shaderSrcFragment = glsl`
     return scale2D(vec2(1.0, 1.0 / sourceAspectRatio)) * translate2D(vec2(0.5));
   }
 
-  vec2 applyTransform(vec2 uv, vec2 translation, float rotation, float scale) {
+  mat3 desqueezeTexture() {
+    return scale2D(desqueezeAspect);
+  }
+
+  vec2 applyTransform(vec2 uv, vec2 translation, float rotation) {
     vec3 transformCoord = vec3(uv, 1.0);
 
     transformCoord = transformCoord * reprojectZero();
+    transformCoord = transformCoord * desqueezeTexture();
 
     transformCoord = transformCoord * translate2D(translation);
     transformCoord = transformCoord * rotate2D(rotation * 2.0);
-    transformCoord = transformCoord * scale2D(vec2(scale));
 
     transformCoord = transformCoord * reprojectCenter();
 
@@ -106,7 +110,7 @@ export const shaderSrcFragment = glsl`
   }
 
   void main() {
-    vec2 sampleCoords = applyTransform(uv, translation, rotation, scale);
+    vec2 sampleCoords = applyTransform(uv, translation, rotation);
     vec4 color = texture2D(textureSampler, sampleCoords);
     
     color.rgb = adjustShadowsHighlights(color.rgb, shadows, highlights);

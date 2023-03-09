@@ -206,9 +206,9 @@ export class CanvasRenderer {
     sourceDimensions: Dimensions;
     outputDimensions: Dimensions;
     renderDimensions: Dimensions;
-      transform: TransformParameters;
-      adjustments: AdjustmentParameters;
-      pixelRatio: number;
+    transform: TransformParameters;
+    adjustments: AdjustmentParameters;
+    pixelRatio: number;
   }) {
     const gl = this.context;
 
@@ -245,11 +245,17 @@ export class CanvasRenderer {
     // Set our globals
     // Note: We may be able to set "sourceAspectRatio" less frequently.
     this.setUniform("sourceAspectRatio", sourceAspectRatio);
+    this.setUniform(
+      "desqueezeAspect",
+      new Float32Array([params.transform.dx, params.transform.dy])
+    );
 
     // Set our transforms
-    this.setUniform("translation", new Float32Array([0, 0]));
-    this.setUniform("rotation", 0);
-    this.setUniform("scale", 1);
+    this.setUniform(
+      "translation",
+      new Float32Array([params.transform.cx - 0.5, params.transform.cy - 0.5])
+    );
+    this.setUniform("rotation", params.transform.adjust);
 
     // Set our adjustments
     this.setUniform("brightness", params.adjustments.brightness);
@@ -299,9 +305,9 @@ export class CanvasRenderer {
     sourceDimensions: Dimensions;
     outputDimensions: Dimensions;
     renderDimensions: Dimensions;
-      transform: TransformParameters;
-      adjustments: AdjustmentParameters;
-      pixelRatio: number;
+    transform: TransformParameters;
+    adjustments: AdjustmentParameters;
+    pixelRatio: number;
   }) {
     this.draw(params);
     return this.getImageDataFromCanvas();
