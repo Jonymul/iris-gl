@@ -14,7 +14,7 @@ import { Dimensions } from "../types/Dimensions";
 
 export class Iris {
   private canvasRenderer: CanvasRenderer;
-  private inputDimensions: Dimensions = { width: 0, height: 0 };
+  private sourceDimensions: Dimensions = { width: 0, height: 0 };
   private adjustmentParams: AdjustmentParameters = defaultAdjustmentParameters;
   private transformParams: TransformParameters = defaultTransformParameters;
   private maxOutputDimensions: Dimensions & { pixelRatio: number };
@@ -23,20 +23,28 @@ export class Iris {
     this.canvasRenderer = new CanvasRenderer(targetCanvas);
   }
 
-  private getOutputDimensions() {
+  private get outputDimensions(): Dimensions {
+    return {
+      width: this.sourceDimensions.width * this.transformParams.dx,
+      height: this.sourceDimensions.height * this.transformParams.dy,
+    };
+  }
+
+  private getRenderDimensions(): Dimensions {
+    const outputDimensions = this.outputDimensions;
+
     if (this.maxOutputDimensions === undefined) {
-      return this.inputDimensions;
+      return outputDimensions;
     }
 
     const heightRatio =
-      this.maxOutputDimensions.height / this.inputDimensions.height;
-    const widthRatio =
-      this.maxOutputDimensions.width / this.inputDimensions.width;
+      this.maxOutputDimensions.height / outputDimensions.height;
+    const widthRatio = this.maxOutputDimensions.width / outputDimensions.width;
     const targetRatio = Math.min(1, heightRatio, widthRatio);
 
     return {
-      width: this.inputDimensions.width * targetRatio,
-      height: this.inputDimensions.height * targetRatio,
+      width: outputDimensions.width * targetRatio,
+      height: outputDimensions.height * targetRatio,
     };
   }
 
@@ -46,14 +54,14 @@ export class Iris {
 
   setImage(inputImage: ImageData | HTMLImageElement) {
     if (inputImage instanceof ImageData) {
-      this.inputDimensions = {
+      this.sourceDimensions = {
         width: inputImage.width,
         height: inputImage.height,
       };
     }
 
     if (inputImage instanceof HTMLImageElement) {
-      this.inputDimensions = {
+      this.sourceDimensions = {
         width: inputImage.naturalWidth,
         height: inputImage.naturalHeight,
       };
