@@ -137,7 +137,9 @@ export class Iris {
 
   render() {
     return this.canvasRenderer.render({
-      ...this.getOutputDimensions(),
+      sourceDimensions: this.sourceDimensions,
+      outputDimensions: this.outputDimensions,
+      renderDimensions: this.getRenderDimensions(),
       pixelRatio: this.getOutputPixelRatio(),
       adjustments: this.adjustmentParams,
       transform: this.transformParams,
