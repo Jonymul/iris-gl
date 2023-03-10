@@ -19,15 +19,9 @@ export const useRootIrisContextValue = (): IIrisContext => {
   const [adjustments, _setAdjustments] = useState<AdjustmentParameters>(
     defaultAdjustmentParameters
   );
+  const scheduledRenderAdjustments = useRef<AdjustmentParameters>(adjustments);
 
   const imageElem = useTempGetImageData("/jag.jpg");
-
-  useEffect(() => {
-    if (imageElem !== undefined && previewCanvas !== undefined) {
-      irisInstance.current.setImage(imageElem);
-      irisInstance.current.render();
-    }
-  }, [imageElem, previewCanvas, irisInstance.current]);
 
   const createPreviewInstance = useCallback(
     (params: {
@@ -35,15 +29,11 @@ export const useRootIrisContextValue = (): IIrisContext => {
       pixelRatio: number;
       maxDimensions?: { width: number; height: number };
     }): void => {
-      const { maxDimensions, pixelRatio, canvas } = params;
-      console.log("createPreviewInstance", { canvas, imageElem });
+      const { canvas } = params;
       irisInstance.current.attachCanvas(canvas);
 
-      if (maxDimensions !== undefined) {
-        irisInstance.current.setMaxOutputDimensions(maxDimensions, pixelRatio);
-      }
+      // TODO: Store preview instance dimensions and pixel ratio
 
-      // Purely for firing the setImage useEffect
       setPreviewCanvas(canvas);
     },
     [irisInstance, adjustments, imageElem]
@@ -55,26 +45,42 @@ export const useRootIrisContextValue = (): IIrisContext => {
 
   const render = useCallback(() => {
     if (irisInstance.current.getState() !== "Ready") return;
-    irisInstance.current.render();
-  }, [irisInstance]);
 
-  const scheduleRender = useCallback(() => {
-    if (!hasRenderScheduled.current) {
-      requestAnimationFrame(() => {
-        render();
-        hasRenderScheduled.current = false;
-      });
-    }
-  }, [hasRenderScheduled]);
+    // TODO: Set transform and subsampling factor
+    irisInstance.current.render({
+      adjustments: scheduledRenderAdjustments.current,
+      transform: { dx: 1, dy: 1, cx: 0.5, cy: 0.5, rotation: 0, adjust: 0 },
+      subsamplingFactor: 3,
+    });
+  }, [scheduledRenderAdjustments, irisInstance]);
+
+  const scheduleRender = useCallback(
+    (adjustments: AdjustmentParameters) => {
+      scheduledRenderAdjustments.current = adjustments;
+      if (!hasRenderScheduled.current) {
+        requestAnimationFrame(() => {
+          render();
+          hasRenderScheduled.current = false;
+        });
+      }
+    },
+    [hasRenderScheduled, scheduledRenderAdjustments, render]
+  );
 
   const setAdjustments = useCallback(
     (adjustments: AdjustmentParameters) => {
       _setAdjustments(adjustments);
-      irisInstance.current.setAdjustments(adjustments);
-      scheduleRender();
+      scheduleRender(adjustments);
     },
     [irisInstance.current]
   );
+
+  useEffect(() => {
+    if (imageElem !== undefined && previewCanvas !== undefined) {
+      irisInstance.current.setImage(imageElem);
+      scheduleRender(adjustments);
+    }
+  }, [imageElem, previewCanvas, irisInstance.current]);
 
   return {
     _instance: irisInstance.current,
