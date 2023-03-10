@@ -2,38 +2,58 @@ import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import {
   AdjustmentParameters,
   defaultAdjustmentParameters,
+  Dimensions,
   Iris,
 } from "@iris/core";
 import { IIrisContext } from "../types/IIrisContext";
 import { useTempGetImageData } from "../hooks/useTempGetImageData";
+import {
+  TransformParameters,
+  defaultTransformParameters,
+} from "@iris/core/lib/types/TransformParameters";
+import { calculateCoverScaleFactor } from "../helpers/calculateCoverScaleFactor";
 
 export const IrisContext = createContext<IIrisContext | undefined>(undefined);
 export const { Provider, Consumer } = IrisContext;
 
 export const useRootIrisContextValue = (): IIrisContext => {
   const irisInstance = useRef<Iris>(new Iris());
-  const hasRenderScheduled = useRef(false);
   const [previewCanvas, setPreviewCanvas] = useState<
     HTMLCanvasElement | undefined
   >(undefined);
+  const [previewCanvasDimensions, setPreviewCanvasDimensions] =
+    useState<Dimensions>({
+      width: 0,
+      height: 0,
+    });
+  const previewDimensions = useRef<Dimensions>({
+    width: 0,
+    height: 0,
+  });
+  const previewPixelRatio = useRef<number>(1);
   const [adjustments, _setAdjustments] = useState<AdjustmentParameters>(
     defaultAdjustmentParameters
   );
+  const [transform, _setTransform] = useState<TransformParameters>(
+    defaultTransformParameters
+  );
+  const scheduledRender = useRef(false);
   const scheduledRenderAdjustments = useRef<AdjustmentParameters>(adjustments);
+  const scheduledRenderTransform = useRef<TransformParameters>(transform);
 
   const imageElem = useTempGetImageData("/jag.jpg");
 
   const createPreviewInstance = useCallback(
     (params: {
       canvas: HTMLCanvasElement;
+      dimensions: Dimensions;
       pixelRatio: number;
-      maxDimensions?: { width: number; height: number };
     }): void => {
-      const { canvas } = params;
+      const { canvas, dimensions, pixelRatio } = params;
       irisInstance.current.attachCanvas(canvas);
 
-      // TODO: Store preview instance dimensions and pixel ratio
-
+      previewDimensions.current = dimensions;
+      previewPixelRatio.current = pixelRatio;
       setPreviewCanvas(canvas);
     },
     [irisInstance, adjustments, imageElem]
@@ -46,44 +66,67 @@ export const useRootIrisContextValue = (): IIrisContext => {
   const render = useCallback(() => {
     if (irisInstance.current.getState() !== "Ready") return;
 
-    // TODO: Set transform and subsampling factor
+    const outputDimensions = irisInstance.current.computeOutputDimensions(
+      scheduledRenderTransform.current
+    );
+    const canvasScaleFactor = calculateCoverScaleFactor(
+      previewDimensions.current,
+      outputDimensions
+    );
+
+    const subsamplingRatio = 1 / canvasScaleFactor / previewPixelRatio.current;
+    const canvasDimensions: Dimensions = {
+      width: Math.round(outputDimensions.width * canvasScaleFactor),
+      height: Math.round(outputDimensions.height * canvasScaleFactor),
+    };
+
+    setPreviewCanvasDimensions(canvasDimensions);
     irisInstance.current.render({
       adjustments: scheduledRenderAdjustments.current,
-      transform: { dx: 1, dy: 1, cx: 0.5, cy: 0.5, rotation: 0, adjust: 0 },
-      subsamplingFactor: 3,
+      transform: scheduledRenderTransform.current,
+      subsamplingFactor: subsamplingRatio,
     });
-  }, [scheduledRenderAdjustments, irisInstance]);
+  }, [
+    scheduledRenderAdjustments,
+    scheduledRenderTransform,
+    previewDimensions,
+    previewPixelRatio,
+    irisInstance,
+  ]);
 
   const scheduleRender = useCallback(
-    (adjustments: AdjustmentParameters) => {
+    (adjustments: AdjustmentParameters, transform: TransformParameters) => {
       scheduledRenderAdjustments.current = adjustments;
-      if (!hasRenderScheduled.current) {
+      scheduledRenderTransform.current = transform;
+
+      if (!scheduledRender.current) {
         requestAnimationFrame(() => {
           render();
-          hasRenderScheduled.current = false;
+          scheduledRender.current = false;
         });
       }
     },
-    [hasRenderScheduled, scheduledRenderAdjustments, render]
+    [scheduledRender, scheduledRenderAdjustments, render]
   );
 
   const setAdjustments = useCallback(
     (adjustments: AdjustmentParameters) => {
       _setAdjustments(adjustments);
-      scheduleRender(adjustments);
+      scheduleRender(adjustments, transform);
     },
-    [irisInstance.current]
+    [irisInstance, transform]
   );
 
   useEffect(() => {
     if (imageElem !== undefined && previewCanvas !== undefined) {
       irisInstance.current.setImage(imageElem);
-      scheduleRender(adjustments);
+      scheduleRender(adjustments, transform);
     }
-  }, [imageElem, previewCanvas, irisInstance.current]);
+  }, [imageElem, previewCanvas, irisInstance]);
 
   return {
     _instance: irisInstance.current,
+    previewCanvasDimensions: previewCanvasDimensions,
     createPreviewInstance: createPreviewInstance,
     destroyPreviewInstance: destroyPreviewInstance,
     adjustments: adjustments,
