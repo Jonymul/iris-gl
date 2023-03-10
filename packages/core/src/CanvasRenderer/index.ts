@@ -204,7 +204,7 @@ export class CanvasRenderer {
 
   private draw(params: {
     sourceDimensions: Dimensions;
-    outputDimensions: Dimensions;
+    renderDimensions: Dimensions;
     transform: TransformParameters;
     adjustments: AdjustmentParameters;
   }) {
@@ -219,8 +219,8 @@ export class CanvasRenderer {
     const sourceAspectRatio =
       params.sourceDimensions.height / params.sourceDimensions.width;
 
-    this.canvas.width = params.outputDimensions.width;
-    this.canvas.height = params.outputDimensions.height;
+    this.canvas.width = params.renderDimensions.width;
+    this.canvas.height = params.renderDimensions.height;
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
     // Bind VERTICES as the active array buffer.
@@ -297,7 +297,7 @@ export class CanvasRenderer {
 
   render(params: {
     sourceDimensions: Dimensions;
-    outputDimensions: Dimensions;
+    renderDimensions: Dimensions;
     transform: TransformParameters;
     adjustments: AdjustmentParameters;
   }) {

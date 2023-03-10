@@ -1,12 +1,9 @@
 import { CanvasRenderer } from "../CanvasRenderer";
 import {
-  AdjustmentParameter,
   AdjustmentParameters,
   defaultAdjustmentParameters,
 } from "../types/AdjustmentParameters";
 import {
-  CropParameters,
-  Rotation,
   TransformParameters,
   defaultTransformParameters,
 } from "../types/TransformParameters";
@@ -18,7 +15,14 @@ export class Iris {
   // Perhaps instead of null, we could default to an offscreen or unmounted canvas
   private sourceDimensions: Dimensions = { width: 0, height: 0 };
 
-  private computeOutputDimensions(
+  public computeOutputDimensions(transform: TransformParameters): Dimensions {
+    return {
+      width: Math.round(this.sourceDimensions.width * transform.dx),
+      height: Math.round(this.sourceDimensions.height * transform.dy),
+    };
+  }
+
+  private computeRenderDimensions(
     transform: TransformParameters,
     subsamplingFactor: number
   ): Dimensions {
@@ -31,28 +35,6 @@ export class Iris {
       ),
     };
   }
-
-  // private get renderDimensions(): Dimensions {
-  //   const outputDimensions = this.outputDimensions;
-
-  //   if (this.maxOutputDimensions === undefined) {
-  //     return outputDimensions;
-  //   }
-
-  //   const heightRatio =
-  //     this.maxOutputDimensions.height / outputDimensions.height;
-  //   const widthRatio = this.maxOutputDimensions.width / outputDimensions.width;
-  //   const targetRatio = Math.min(1, heightRatio, widthRatio);
-
-  //   return {
-  //     width: outputDimensions.width * targetRatio,
-  //     height: outputDimensions.height * targetRatio,
-  //   };
-  // }
-
-  // private getOutputPixelRatio() {
-  //   return this.maxOutputDimensions?.pixelRatio || 1;
-  // }
 
   attachCanvas(targetCanvas: HTMLCanvasElement) {
     this.canvasRenderer = new CanvasRenderer(targetCanvas);
@@ -103,14 +85,14 @@ export class Iris {
     }
 
     const sourceDimensions = this.sourceDimensions;
-    const outputDimensions = this.computeOutputDimensions(
+    const renderDimensions = this.computeRenderDimensions(
       transform,
       subsamplingFactor
     );
 
     return this.canvasRenderer.render({
       sourceDimensions: sourceDimensions,
-      outputDimensions: outputDimensions,
+      renderDimensions: renderDimensions,
       adjustments: computedAdjustments,
       transform: transform,
     });
