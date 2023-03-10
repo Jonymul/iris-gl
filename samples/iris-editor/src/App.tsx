@@ -20,10 +20,7 @@ export const App: FC = () => {
             css={css`
               width: 100%;
               flex: 1 1 auto;
-              display: flex;
               line-height: 0;
-              align-items: center;
-              justify-content: center;
             `}
           />
           <EditorControls
