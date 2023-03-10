@@ -17,38 +17,42 @@ export class Iris {
   private canvasRenderer: CanvasRenderer | null = null;
   // Perhaps instead of null, we could default to an offscreen or unmounted canvas
   private sourceDimensions: Dimensions = { width: 0, height: 0 };
-  private adjustmentParams: AdjustmentParameters = defaultAdjustmentParameters;
-  private transformParams: TransformParameters = defaultTransformParameters;
-  private maxOutputDimensions: Dimensions & { pixelRatio: number };
 
-  private get outputDimensions(): Dimensions {
+  private computeOutputDimensions(
+    transform: TransformParameters,
+    subsamplingFactor: number
+  ): Dimensions {
     return {
-      width: this.sourceDimensions.width * this.transformParams.dx,
-      height: this.sourceDimensions.height * this.transformParams.dy,
+      width: Math.round(
+        (this.sourceDimensions.width * transform.dx) / subsamplingFactor
+      ),
+      height: Math.round(
+        (this.sourceDimensions.height * transform.dy) / subsamplingFactor
+      ),
     };
   }
 
-  private get renderDimensions(): Dimensions {
-    const outputDimensions = this.outputDimensions;
+  // private get renderDimensions(): Dimensions {
+  //   const outputDimensions = this.outputDimensions;
 
-    if (this.maxOutputDimensions === undefined) {
-      return outputDimensions;
-    }
+  //   if (this.maxOutputDimensions === undefined) {
+  //     return outputDimensions;
+  //   }
 
-    const heightRatio =
-      this.maxOutputDimensions.height / outputDimensions.height;
-    const widthRatio = this.maxOutputDimensions.width / outputDimensions.width;
-    const targetRatio = Math.min(1, heightRatio, widthRatio);
+  //   const heightRatio =
+  //     this.maxOutputDimensions.height / outputDimensions.height;
+  //   const widthRatio = this.maxOutputDimensions.width / outputDimensions.width;
+  //   const targetRatio = Math.min(1, heightRatio, widthRatio);
 
-    return {
-      width: outputDimensions.width * targetRatio,
-      height: outputDimensions.height * targetRatio,
-    };
-  }
+  //   return {
+  //     width: outputDimensions.width * targetRatio,
+  //     height: outputDimensions.height * targetRatio,
+  //   };
+  // }
 
-  private getOutputPixelRatio() {
-    return this.maxOutputDimensions?.pixelRatio || 1;
-  }
+  // private getOutputPixelRatio() {
+  //   return this.maxOutputDimensions?.pixelRatio || 1;
+  // }
 
   attachCanvas(targetCanvas: HTMLCanvasElement) {
     this.canvasRenderer = new CanvasRenderer(targetCanvas);
@@ -80,79 +84,35 @@ export class Iris {
     return this.canvasRenderer.getState();
   }
 
-  setMaxOutputDimensions(dimensions: Dimensions, pixelRatio?: number) {
-    this.maxOutputDimensions = { ...dimensions, pixelRatio: pixelRatio || 1 };
-  }
-
-  setTransformRotation(rotation: Rotation) {
-    this.transformParams.rotation = rotation;
-  }
-
-  getTransformRotation(): Rotation {
-    return this.transformParams.rotation;
-  }
-
-  setTransformAdjust(adjust: number) {
-    this.transformParams.adjust = adjust;
-  }
-
-  getTransformAdjust(): number {
-    return this.transformParams.adjust;
-  }
-
-  setTransformCrop(crop: CropParameters) {
-    this.transformParams.cx = crop.cx;
-    this.transformParams.cy = crop.cy;
-    this.transformParams.dx = crop.dx;
-    this.transformParams.dy = crop.dy;
-  }
-
-  getTransformCrop(): CropParameters {
-    return {
-      cx: this.transformParams.cx,
-      cy: this.transformParams.cy,
-      dx: this.transformParams.dx,
-      dy: this.transformParams.dy,
+  render(params: {
+    adjustments?: Partial<AdjustmentParameters>;
+    transform?: TransformParameters;
+    subsamplingFactor?: number;
+  }) {
+    const {
+      adjustments = {},
+      transform = defaultTransformParameters,
+      subsamplingFactor = 1,
+    } = params;
+    const computedAdjustments: AdjustmentParameters = {
+      ...defaultAdjustmentParameters,
+      ...adjustments,
     };
-  }
-
-  setAdjustments(adjustments: AdjustmentParameters) {
-    this.adjustmentParams = adjustments;
-  }
-
-  getAdjustments(): AdjustmentParameters {
-    return { ...this.adjustmentParams };
-  }
-
-  resetAdjustments() {
-    this.setAdjustments(defaultAdjustmentParameters);
-  }
-
-  setAdjustmentValue<T extends AdjustmentParameter>(
-    parameter: T,
-    value: AdjustmentParameters[T]
-  ) {
-    this.adjustmentParams[parameter] = value;
-  }
-
-  getAdjustmentValue<T extends AdjustmentParameter>(
-    parameter: T
-  ): AdjustmentParameters[T] {
-    return this.adjustmentParams[parameter];
-  }
-
-  render() {
     if (this.canvasRenderer === null) {
       throw new CanvasNotAttachedError();
     }
 
+    const sourceDimensions = this.sourceDimensions;
+    const outputDimensions = this.computeOutputDimensions(
+      transform,
+      subsamplingFactor
+    );
+
     return this.canvasRenderer.render({
-      sourceDimensions: this.sourceDimensions,
-      outputDimensions: this.outputDimensions,
-      renderDimensions: this.renderDimensions,
-      pixelRatio: this.getOutputPixelRatio(),
-      adjustments: this.adjustmentParams,
-      transform: this.transformParams,
+      sourceDimensions: sourceDimensions,
+      outputDimensions: outputDimensions,
+      adjustments: computedAdjustments,
+      transform: transform,
     });
   }
 }

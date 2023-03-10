@@ -205,10 +205,8 @@ export class CanvasRenderer {
   private draw(params: {
     sourceDimensions: Dimensions;
     outputDimensions: Dimensions;
-    renderDimensions: Dimensions;
     transform: TransformParameters;
     adjustments: AdjustmentParameters;
-    pixelRatio: number;
   }) {
     const gl = this.context;
 
@@ -221,12 +219,8 @@ export class CanvasRenderer {
     const sourceAspectRatio =
       params.sourceDimensions.height / params.sourceDimensions.width;
 
-    // TODO: Remove the concept of render/output dimensions here. It should be handled by the Iris module.
-    // Maybe the canvas resizing could take place in Iris core too. Then pixel ratio is also redundant.
-    this.canvas.width = params.renderDimensions.width * params.pixelRatio;
-    this.canvas.height = params.renderDimensions.height * params.pixelRatio;
-    this.canvas.style.width = `${params.renderDimensions.width}px`;
-    this.canvas.style.height = `${params.renderDimensions.height}px`;
+    this.canvas.width = params.outputDimensions.width;
+    this.canvas.height = params.outputDimensions.height;
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
     // Bind VERTICES as the active array buffer.
@@ -304,10 +298,8 @@ export class CanvasRenderer {
   render(params: {
     sourceDimensions: Dimensions;
     outputDimensions: Dimensions;
-    renderDimensions: Dimensions;
     transform: TransformParameters;
     adjustments: AdjustmentParameters;
-    pixelRatio: number;
   }) {
     this.draw(params);
     return this.getImageDataFromCanvas();
