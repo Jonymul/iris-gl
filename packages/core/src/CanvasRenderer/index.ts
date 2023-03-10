@@ -202,7 +202,7 @@ export class CanvasRenderer {
     this.state = "Ready";
   }
 
-  private draw(params: {
+  render(params: {
     sourceDimensions: Dimensions;
     renderDimensions: Dimensions;
     transform: TransformParameters;
@@ -265,7 +265,7 @@ export class CanvasRenderer {
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   }
 
-  private getImageDataFromCanvas() {
+  getImageDataFromCanvas(): ImageData {
     const gl = this.context;
     const pixelBuffer = new Uint8ClampedArray(
       gl.drawingBufferWidth * gl.drawingBufferHeight * 4
@@ -293,15 +293,5 @@ export class CanvasRenderer {
 
   setImage(inputImage: ImageData | HTMLImageElement) {
     this.setTexture(inputImage);
-  }
-
-  render(params: {
-    sourceDimensions: Dimensions;
-    renderDimensions: Dimensions;
-    transform: TransformParameters;
-    adjustments: AdjustmentParameters;
-  }) {
-    this.draw(params);
-    return this.getImageDataFromCanvas();
   }
 }
