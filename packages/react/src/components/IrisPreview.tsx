@@ -26,7 +26,7 @@ export const IrisPreview: FunctionComponent<IrisPreviewProps> = (props) => {
 
   return (
     <div ref={containerRef} {...props}>
-      <canvas ref={canvasRef} />
+      <canvas ref={canvasRef} style={{ width: 382, height: 510 }} />
     </div>
   );
 };
